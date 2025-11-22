@@ -460,6 +460,71 @@ app.delete('/api/missions/:id', authenticate, async (req, res) => {
   }
 });
 
+// Missions: Update status only (protected, admin/trainer)
+app.patch('/api/missions/:id/status', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Check if user is admin or trainer
+    if (!['ADMIN', 'TRAINER'].includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Insufficient permissions',
+      });
+    }
+
+    // Validate status value
+    const validStatuses = ['DRAFT', 'ACTIVE', 'ARCHIVED'];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be one of: DRAFT, ACTIVE, ARCHIVED',
+      });
+    }
+
+    // Check if mission exists
+    const existingMission = await prisma.mission.findUnique({
+      where: { id }
+    });
+
+    if (!existingMission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mission not found',
+      });
+    }
+
+    // Only admin can change status of others' missions, trainers can only change their own
+    if (req.user.role === 'TRAINER' && existingMission.createdBy !== req.user.userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only change status of your own missions',
+      });
+    }
+
+    const mission = await prisma.mission.update({
+      where: { id },
+      data: { status },
+    });
+
+    // Invalidate missions cache
+    await invalidateMissionCache();
+
+    res.json({
+      success: true,
+      data: mission,
+      message: `Mission status updated to ${status}`,
+    });
+  } catch (error) {
+    console.error('Update mission status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update mission status',
+    });
+  }
+});
+
 // Players: Get leaderboard
 app.get('/api/players/leaderboard', async (_req, res) => {
   try {
