@@ -5,12 +5,32 @@ const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Redis = require('ioredis');
 
 // Load environment variables
 dotenv.config();
 
 // Initialize Prisma
 const prisma = new PrismaClient();
+
+// Initialize Redis
+const redis = new Redis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
+  maxRetriesPerRequest: 3,
+});
+
+redis.on('error', (err) => {
+  console.error('Redis Client Error:', err);
+});
+
+redis.on('connect', () => {
+  console.log('✅ Redis connected successfully');
+});
 
 // Create Express app
 const app = express();
@@ -56,6 +76,19 @@ function authenticate(req, res, next) {
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: 'Invalid token' });
+  }
+}
+
+// Helper function to invalidate mission cache
+async function invalidateMissionCache() {
+  try {
+    const keys = await redis.keys('missions:*');
+    if (keys.length > 0) {
+      await redis.del(...keys);
+      console.log(`🗑️  Invalidated ${keys.length} mission cache keys`);
+    }
+  } catch (error) {
+    console.error('Cache invalidation error:', error);
   }
 }
 
@@ -172,10 +205,22 @@ app.get('/api/auth/me', authenticate, async (req, res) => {
   }
 });
 
-// Missions: Get all
+// Missions: Get all (with Redis caching)
 app.get('/api/missions', async (req, res) => {
   try {
     const { status, difficulty, type, page = 1, limit = 10 } = req.query;
+
+    // Create cache key from query parameters
+    const cacheKey = `missions:${status || 'all'}:${difficulty || 'all'}:${type || 'all'}:page${page}:limit${limit}`;
+
+    // Try to get from cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log('✅ Cache HIT for:', cacheKey);
+      return res.json(JSON.parse(cached));
+    }
+
+    console.log('❌ Cache MISS for:', cacheKey);
 
     const where = {
       deletedAt: null,
@@ -197,7 +242,7 @@ app.get('/api/missions', async (req, res) => {
       prisma.mission.count({ where }),
     ]);
 
-    res.json({
+    const response = {
       success: true,
       data: missions,
       pagination: {
@@ -206,7 +251,12 @@ app.get('/api/missions', async (req, res) => {
         total,
         pages: Math.ceil(total / Number(limit)),
       }
-    });
+    };
+
+    // Cache for 5 minutes (300 seconds)
+    await redis.setex(cacheKey, 300, JSON.stringify(response));
+
+    res.json(response);
   } catch (error) {
     console.error('Get missions error:', error);
     res.status(500).json({
@@ -302,6 +352,9 @@ app.post('/api/missions', authenticate, async (req, res) => {
       },
     });
 
+    // Invalidate missions cache
+    await invalidateMissionCache();
+
     res.status(201).json({
       success: true,
       data: mission,
@@ -354,6 +407,9 @@ app.put('/api/missions/:id', authenticate, async (req, res) => {
       data: req.body,
     });
 
+    // Invalidate missions cache
+    await invalidateMissionCache();
+
     res.json({
       success: true,
       data: mission,
@@ -387,6 +443,9 @@ app.delete('/api/missions/:id', authenticate, async (req, res) => {
         deletedAt: new Date(),
       },
     });
+
+    // Invalidate missions cache
+    await invalidateMissionCache();
 
     res.json({
       success: true,
