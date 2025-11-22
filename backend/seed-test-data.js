@@ -105,8 +105,8 @@ async function seedTestData() {
       data: {
         title: 'Basic Navigation Training',
         description: '<h2>Mission Overview</h2><p>Learn the fundamentals of maritime navigation including chart reading, GPS systems, and traditional navigation methods.</p><h3>Key Topics</h3><ul><li>Chart symbols and conventions</li><li>GPS and electronic navigation</li><li>Dead reckoning</li><li>Collision avoidance</li></ul>',
-        difficulty: 'BEGINNER',
-        type: 'SIMULATION',
+        difficulty: 'EASY',
+        type: 'PVE',
         duration: 45,
         learningObjectives: [
           'Understand basic navigation principles',
@@ -124,8 +124,8 @@ async function seedTestData() {
       data: {
         title: 'Emergency Response Procedures',
         description: '<h2>Critical Emergency Training</h2><p><strong>This mission covers essential emergency response procedures</strong> that every maritime professional must master.</p><blockquote>Remember: In an emergency, every second counts!</blockquote><h3>Scenarios Covered</h3><ol><li>Fire suppression techniques</li><li>Man overboard procedures</li><li>Abandon ship protocols</li><li>Medical emergency response</li></ol>',
-        difficulty: 'INTERMEDIATE',
-        type: 'PRACTICAL',
+        difficulty: 'MEDIUM',
+        type: 'PVE',
         duration: 60,
         learningObjectives: [
           'Execute proper fire suppression procedures',
@@ -144,8 +144,8 @@ async function seedTestData() {
       data: {
         title: 'Advanced Cargo Operations',
         description: '<h2>Complex Cargo Handling</h2><p>Master the intricate procedures of cargo loading, securing, and documentation for international shipping.</p><h3>Advanced Topics</h3><ul><li>Dangerous goods handling (IMDG Code)</li><li>Container loading patterns</li><li>Stability calculations</li><li>Port state control requirements</li></ul><hr><p><em>This mission requires prior completion of Basic Cargo Operations.</em></p>',
-        difficulty: 'ADVANCED',
-        type: 'ASSESSMENT',
+        difficulty: 'HARD',
+        type: 'PVP',
         duration: 90,
         learningObjectives: [
           'Handle dangerous goods according to IMDG Code',
@@ -164,8 +164,8 @@ async function seedTestData() {
       data: {
         title: 'Bridge Team Management',
         description: '<h2>Leadership at Sea</h2><p>Develop expert-level bridge team management skills for safe and efficient vessel operations.</p>',
-        difficulty: 'EXPERT',
-        type: 'SIMULATION',
+        difficulty: 'HARD',
+        type: 'PVP',
         duration: 120,
         learningObjectives: [
           'Coordinate bridge team operations',
@@ -197,7 +197,7 @@ async function seedTestData() {
           score: 85,
           isCompleted: true,
           completedAt: new Date(),
-          timeTaken: 42,
+          timeSpent: 42,
         }
       });
 
@@ -208,7 +208,7 @@ async function seedTestData() {
           score: 72,
           isCompleted: true,
           completedAt: new Date(),
-          timeTaken: 48,
+          timeSpent: 48,
         }
       });
 
@@ -219,7 +219,7 @@ async function seedTestData() {
           score: 90,
           isCompleted: true,
           completedAt: new Date(),
-          timeTaken: 55,
+          timeSpent: 55,
         }
       });
 

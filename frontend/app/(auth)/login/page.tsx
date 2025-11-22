@@ -185,7 +185,7 @@ export default function LoginPage() {
 
           {/* Demo Credentials */}
           <div className="mt-6 rounded-lg border border-dark-800 bg-dark-800/30 p-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-dark-400">
+            <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-dark-400">
               Demo Credentials
             </p>
             <div className="space-y-2 text-sm">
@@ -216,7 +216,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-dark-500">
-          © 2024 Maritime Training Mission Control. All rights reserved.
+          © 2025 Maritime Training Mission Control Job Assignment. <p>All Right Reserved</p>
         </p>
       </div>
     </div>
