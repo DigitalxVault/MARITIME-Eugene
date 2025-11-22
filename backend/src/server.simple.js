@@ -621,6 +621,66 @@ app.get('/api/analytics/overview', async (_req, res) => {
   }
 });
 
+// Activity: Get recent activities (polling-based for real-time feed)
+app.get('/api/activity/recent', async (req, res) => {
+  try {
+    const { limit = 20, since } = req.query;
+
+    // Build where clause for filtering by timestamp
+    const where = {
+      deletedAt: null,
+    };
+
+    // If 'since' timestamp provided, only return activities after that time
+    if (since) {
+      where.updatedAt = {
+        gt: new Date(since),
+      };
+    }
+
+    // Get recently updated missions as activity feed
+    const recentMissions = await prisma.mission.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+      take: Number(limit),
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        updatedAt: true,
+        createdAt: true,
+      },
+    });
+
+    // Format activities with action type based on timestamps
+    const activities = recentMissions.map(mission => {
+      const isNew = new Date(mission.updatedAt).getTime() === new Date(mission.createdAt).getTime();
+      return {
+        id: mission.id,
+        type: isNew ? 'MISSION_CREATED' : 'MISSION_UPDATED',
+        title: mission.title,
+        status: mission.status,
+        timestamp: mission.updatedAt,
+        message: isNew
+          ? `New mission "${mission.title}" created`
+          : `Mission "${mission.title}" updated to ${mission.status}`,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: activities,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Get activities error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch activities',
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Mission Control Backend (Simplified JS) running on port ${PORT}`);
