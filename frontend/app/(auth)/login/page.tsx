@@ -57,8 +57,8 @@ export default function LoginPage() {
         if (response.data.data.accessToken) {
           localStorage.setItem('accessToken', response.data.data.accessToken);
         }
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Redirect to dashboard (route group version)
+        router.push('/');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
@@ -216,7 +216,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-sm text-dark-500">
-          © 2025 Maritime Training Mission Control Job Assignment. <p>All Right Reserved</p>
+          © 2025 Maritime Training Mission Control Job Assignment. All Rights Reserved.
         </p>
       </div>
     </div>

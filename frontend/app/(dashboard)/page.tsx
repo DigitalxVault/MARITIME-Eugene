@@ -8,6 +8,7 @@
 import React from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { UserRole } from '@/types';
+import ActivityFeed from '@/components/dashboard/ActivityFeed';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -59,26 +60,7 @@ export default function DashboardPage() {
 
       {/* Recent Activity */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
-          <h2 className="mb-4 text-lg font-semibold text-dark-50">Recent Activity</h2>
-          <div className="space-y-4">
-            <ActivityItem
-              type="mission_completed"
-              message="Player John Doe completed Mission Alpha"
-              time="2 hours ago"
-            />
-            <ActivityItem
-              type="mission_created"
-              message="New mission 'Coastal Navigation' created"
-              time="4 hours ago"
-            />
-            <ActivityItem
-              type="player_registered"
-              message="New player Sarah Chen registered"
-              time="6 hours ago"
-            />
-          </div>
-        </div>
+        <ActivityFeed pollInterval={10000} limit={15} />
 
         <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
           <h2 className="mb-4 text-lg font-semibold text-dark-50">Quick Actions</h2>
@@ -119,19 +101,6 @@ function StatCard({
       </div>
       <h3 className="mb-1 text-sm font-medium text-dark-400">{title}</h3>
       <p className="font-display text-2xl font-bold text-dark-50">{value}</p>
-    </div>
-  );
-}
-
-// Activity Item Component
-function ActivityItem({ type, message, time }: { type: string; message: string; time: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-lg border border-dark-800 bg-dark-800/30 p-3">
-      <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary-500"></div>
-      <div className="flex-1">
-        <p className="text-sm text-dark-200">{message}</p>
-        <p className="mt-1 text-xs text-dark-500">{time}</p>
-      </div>
     </div>
   );
 }
