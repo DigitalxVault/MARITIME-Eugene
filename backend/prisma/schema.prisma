@@ -1,0 +1,132 @@
+// Prisma schema for Mission Control Dashboard - Maritime Training System
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  ADMIN
+  TRAINER
+  LEARNER
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum MissionType {
+  PVE       // Player vs Environment (Campaign)
+  PVP       // Player vs Player (Multiplayer)
+}
+
+enum MissionStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? // Soft delete support
+
+  // Relations
+  playerProfile PlayerProfile?
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model PlayerProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  username String @unique
+  rank     String @default("Cadet")
+
+  // Performance Metrics
+  winRate          Float   @default(0.0) // PvP win rate (0.0 - 1.0)
+  averageScore     Float   @default(0.0) // Average mission score
+  missionsCompleted Int    @default(0)
+  totalTimeSpent   Int     @default(0) // Total time in minutes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missionResults MissionResult[]
+
+  @@index([username])
+  @@map("player_profiles")
+}
+
+model Mission {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  difficulty  Difficulty
+  type        MissionType
+  duration    Int      // Duration in minutes
+  status      MissionStatus @default(DRAFT)
+
+  // Learning objectives stored as array
+  learningObjectives String[] @default([])
+
+  // Metadata
+  createdBy String   // User ID who created the mission
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? // Soft delete support
+
+  // Relations
+  results MissionResult[]
+
+  @@index([difficulty, type, status])
+  @@index([status])
+  @@index([createdBy])
+  @@map("missions")
+}
+
+model MissionResult {
+  id       String  @id @default(cuid())
+  missionId String
+  playerId  String
+
+  // Result Data
+  score         Float    // Mission score (0-100)
+  timeSpent     Int      // Time spent in minutes
+  completedAt   DateTime @default(now())
+  isCompleted   Boolean  @default(true)
+
+  // Optional metadata
+  achievements String[] @default([]) // Achievement IDs earned
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  mission Mission        @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  player  PlayerProfile  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+  @@index([playerId])
+  @@index([completedAt])
+  @@map("mission_results")
+}
