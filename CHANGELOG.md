@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 3 - Mission Management UI (2025-11-23)
+
+#### Discovered
+- **Missions List Page** (commit: d0df2cc - documentation)
+  - Fully implemented in previous session but undocumented
+  - Location: `frontend/app/(dashboard)/missions/page.tsx` (255 lines)
+  - TanStack Query data fetching with `/missions` endpoint
+  - Status filter (DRAFT, ACTIVE, COMPLETED, ARCHIVED)
+  - Difficulty filter (BEGINNER, INTERMEDIATE, ADVANCED, EXPERT)
+  - Full-text search on mission titles
+  - Pagination controls (Previous/Next with page numbers)
+  - Items per page selector (10/25/50)
+  - RBAC: Create button visible only for ADMIN/TRAINER roles
+  - Loading states with animated spinner
+  - Error handling with user-friendly messages
+  - Mission cards with color-coded difficulty and status badges
+  - Icon components (Clock, Target, Users)
+  - Dark theme styling with hover effects
+
+- **Mission Detail Page** (commit: d0df2cc - documentation)
+  - Fully implemented in previous session but undocumented
+  - Location: `frontend/app/(dashboard)/missions/[id]/page.tsx` (288 lines)
+  - Dynamic routing with mission ID parameter
+  - TanStack Query data fetching for single mission
+  - Back navigation button
+  - Status and difficulty badges (color-coded)
+  - RBAC checks: Edit button for ADMIN/TRAINER, Start button for PLAYER
+  - Mission info cards (Duration, Passing Score, Max Attempts)
+  - Objectives list display
+  - Mission statistics and metadata
+  - Utility functions: `formatDate`, `formatDuration`, `getDifficultyColor`, `getStatusColor`
+  - Loading and error states
+
+#### Status
+- **66% Complete** - 2 of 3 pages implemented
+- **Testing**: Browser testing pending for all pages
+- **Missing**: Mission create/edit forms (high priority)
+
+#### Next Steps
+1. Implement mission create form at `/dashboard/missions/new/page.tsx`
+2. Implement mission edit form at `/dashboard/missions/[id]/edit/page.tsx`
+3. Browser testing for missions list and detail pages
+4. End-to-end mission management flow testing
+
+---
+
 ### Phase 2 - Frontend Integration (2025-11-23)
 
 #### Added
