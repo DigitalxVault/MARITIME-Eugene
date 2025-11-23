@@ -2,14 +2,23 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function Home() {
   const router = useRouter();
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
-    // Redirect to login page
-    router.push('/login');
-  }, [router]);
+    if (loading) return; // Wait for auth check to complete
+
+    if (isAuthenticated) {
+      // Redirect authenticated users to dashboard
+      router.push('/dashboard');
+    } else {
+      // Redirect unauthenticated users to login
+      router.push('/login');
+    }
+  }, [isAuthenticated, loading, router]);
 
   // Show loading while redirecting
   return (

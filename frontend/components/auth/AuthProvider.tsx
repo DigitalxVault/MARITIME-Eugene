@@ -33,11 +33,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const initAuth = async () => {
       try {
         if (authService.isAuthenticated()) {
+          console.log('[AuthProvider] Token exists, fetching user...');
           const currentUser = await authService.getCurrentUser();
-          setUser(currentUser);
+          console.log('[AuthProvider] User fetched:', currentUser);
+
+          if (currentUser) {
+            setUser(currentUser);
+          } else {
+            console.error('[AuthProvider] getCurrentUser returned null/undefined');
+            authService.logout(); // Clear invalid token
+            setUser(null);
+          }
+        } else {
+          console.log('[AuthProvider] No token found');
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
+        console.error('[AuthProvider] Failed to initialize auth:', error);
+        authService.logout(); // Clear invalid token
         setUser(null);
       } finally {
         setLoading(false);

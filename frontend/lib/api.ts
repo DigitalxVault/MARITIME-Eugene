@@ -183,40 +183,47 @@ export const api = {
    * GET request
    */
   get: async <T>(url: string, params?: Record<string, any>): Promise<T> => {
-    const response = await apiClient.get<ApiResponse<T>>(url, { params });
-    return response.data.data;
+    const response = await apiClient.get<any>(url, { params });
+    console.log(`[API GET ${url}] Response:`, response.data);
+    console.log(`[API GET ${url}] Returning:`, response.data.data || response.data);
+    // Handle {success, data} format from backend
+    return response.data.data || response.data;
   },
 
   /**
    * POST request
    */
   post: async <T>(url: string, data?: any): Promise<T> => {
-    const response = await apiClient.post<ApiResponse<T>>(url, data);
-    return response.data.data;
+    const response = await apiClient.post<any>(url, data);
+    // Handle {success, data} format from backend
+    return response.data.data || response.data;
   },
 
   /**
    * PUT request
    */
   put: async <T>(url: string, data?: any): Promise<T> => {
-    const response = await apiClient.put<ApiResponse<T>>(url, data);
-    return response.data.data;
+    const response = await apiClient.put<any>(url, data);
+    // Handle {success, data} format from backend
+    return response.data.data || response.data;
   },
 
   /**
    * PATCH request
    */
   patch: async <T>(url: string, data?: any): Promise<T> => {
-    const response = await apiClient.patch<ApiResponse<T>>(url, data);
-    return response.data.data;
+    const response = await apiClient.patch<any>(url, data);
+    // Handle {success, data} format from backend
+    return response.data.data || response.data;
   },
 
   /**
    * DELETE request
    */
   delete: async <T>(url: string): Promise<T> => {
-    const response = await apiClient.delete<ApiResponse<T>>(url);
-    return response.data.data;
+    const response = await apiClient.delete<any>(url);
+    // Handle {success, data} format from backend
+    return response.data.data || response.data;
   },
 };
 

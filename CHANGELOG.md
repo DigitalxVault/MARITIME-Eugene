@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 2 - Frontend Integration (2025-11-23)
+
+#### Added
+- **Activity Feed Component** (commit: eda27c8)
+  - Real-time polling component with 10-second intervals
+  - Connects to GET /api/activity/recent backend endpoint
+  - Delta updates using 'since' parameter for efficiency
+  - Activity type indicators (MISSION_CREATED, MISSION_UPDATED)
+  - Relative timestamp formatting (just now, X mins/hours/days ago)
+  - Live status indicator with pulse animation
+  - Loading states and comprehensive error handling
+  - Integrated into dashboard page
+
+#### Fixed
+- Login page hydration error from nested `<p>` tags
+- Login redirect routing from /dashboard to / (route group)
+- Dashboard page routing to use (dashboard) route group structure
+
+#### Technical Details
+- Activity feed uses axios with localStorage JWT authentication
+- Automatic polling cleanup on component unmount
+- Responsive UI with hover states and smooth transitions
+- Error boundary for failed API calls
+
+---
+
 ### Phase 1 - Backend Endpoint Development (2025-11-23)
 
 #### Added

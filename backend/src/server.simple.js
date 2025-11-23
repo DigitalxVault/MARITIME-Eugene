@@ -41,9 +41,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000'],
+  origin: ['http://localhost:3000', 'file://'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
@@ -146,6 +146,7 @@ app.post('/api/auth/login', async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
+          username: user.playerProfile?.username || user.email.split('@')[0], // Use playerProfile username or email prefix
           role: user.role,
           playerProfile: user.playerProfile,
         },
@@ -192,6 +193,7 @@ app.get('/api/auth/me', authenticate, async (req, res) => {
       data: {
         id: user.id,
         email: user.email,
+        username: user.playerProfile?.username || user.email.split('@')[0], // Use playerProfile username or email prefix
         role: user.role,
         playerProfile: user.playerProfile,
       }

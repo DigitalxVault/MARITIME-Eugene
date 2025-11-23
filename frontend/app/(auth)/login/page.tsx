@@ -53,12 +53,16 @@ export default function LoginPage() {
       });
 
       if (response.data.success) {
-        // Store token if needed
+        // Store token
         if (response.data.data.accessToken) {
           localStorage.setItem('accessToken', response.data.data.accessToken);
         }
-        // Redirect to dashboard (route group version)
-        router.push('/');
+
+        // Force a small delay to ensure token is saved
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Redirect to dashboard - this will trigger AuthProvider to fetch user
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
