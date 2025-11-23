@@ -6,12 +6,44 @@
  */
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { UserRole } from '@/types';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import { api } from '@/lib/api';
+
+// Analytics Overview Response Type
+interface AnalyticsOverview {
+  metrics: {
+    totalMissions: number;
+    activeMissions: number;
+    totalPlayers: number;
+    activePlayers: number;
+    totalCompletions: number;
+    completionRate: number;
+  };
+  recentActivity: any[];
+  distributions: {
+    missionsByDifficulty: any[];
+    missionsByType: any[];
+  };
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
+
+  // Fetch analytics overview data
+  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useQuery<AnalyticsOverview>({
+    queryKey: ['analytics', 'overview'],
+    queryFn: () => api.get<AnalyticsOverview>('/analytics/overview'),
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 20000, // Consider data stale after 20 seconds
+  });
+
+  // Calculate average score (0-100)
+  const averageScore = analytics?.metrics?.totalCompletions
+    ? Math.round((analytics.metrics.totalCompletions / (analytics.metrics.totalMissions * analytics.metrics.totalPlayers || 1)) * 100)
+    : 0;
 
   return (
     <div className="p-6">
@@ -28,34 +60,54 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Missions"
-          value="24"
-          icon={<MissionIcon />}
-          trend="+12%"
-          trendUp={true}
-        />
-        <StatCard
-          title="Active Players"
-          value="156"
-          icon={<UsersIcon />}
-          trend="+8%"
-          trendUp={true}
-        />
-        <StatCard
-          title="Completion Rate"
-          value="87%"
-          icon={<ChartIcon />}
-          trend="+3%"
-          trendUp={true}
-        />
-        <StatCard
-          title="Average Score"
-          value="82.5"
-          icon={<TrophyIcon />}
-          trend="-2%"
-          trendUp={false}
-        />
+        {analyticsLoading ? (
+          // Loading skeletons
+          <>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-lg border border-dark-800 bg-dark-900/50 p-6 shadow-sci-fi backdrop-blur-sm">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="h-12 w-12 animate-pulse rounded-lg bg-dark-700"></div>
+                  <div className="h-4 w-16 animate-pulse rounded bg-dark-700"></div>
+                </div>
+                <div className="mb-1 h-4 w-24 animate-pulse rounded bg-dark-700"></div>
+                <div className="h-8 w-16 animate-pulse rounded bg-dark-700"></div>
+              </div>
+            ))}
+          </>
+        ) : analyticsError ? (
+          // Error state
+          <div className="col-span-4 rounded-lg border border-error/20 bg-error/10 p-6 text-center text-error">
+            Unable to load dashboard statistics. Please try again later.
+          </div>
+        ) : (
+          // Real data
+          <>
+            <StatCard
+              title="Total Missions"
+              value={analytics?.metrics?.totalMissions?.toString() || '0'}
+              icon={<MissionIcon />}
+              loading={false}
+            />
+            <StatCard
+              title="Active Players"
+              value={analytics?.metrics?.activePlayers?.toString() || '0'}
+              icon={<UsersIcon />}
+              loading={false}
+            />
+            <StatCard
+              title="Completion Rate"
+              value={`${analytics?.metrics?.completionRate || 0}%`}
+              icon={<ChartIcon />}
+              loading={false}
+            />
+            <StatCard
+              title="Total Completions"
+              value={analytics?.metrics?.totalCompletions?.toString() || '0'}
+              icon={<TrophyIcon />}
+              loading={false}
+            />
+          </>
+        )}
       </div>
 
       {/* Recent Activity */}
@@ -82,22 +134,29 @@ function StatCard({
   title,
   value,
   icon,
-  trend,
-  trendUp,
+  loading = false,
 }: {
   title: string;
   value: string;
   icon: React.ReactNode;
-  trend: string;
-  trendUp: boolean;
+  loading?: boolean;
 }) {
+  if (loading) {
+    return (
+      <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6 shadow-sci-fi backdrop-blur-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="h-12 w-12 animate-pulse rounded-lg bg-dark-700"></div>
+        </div>
+        <div className="mb-1 h-4 w-24 animate-pulse rounded bg-dark-700"></div>
+        <div className="h-8 w-16 animate-pulse rounded bg-dark-700"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6 shadow-sci-fi backdrop-blur-sm transition-all hover:border-primary-500/50">
       <div className="mb-4 flex items-center justify-between">
         <div className="rounded-lg bg-primary-500/10 p-3 text-primary-500">{icon}</div>
-        <div className={`text-sm font-medium ${trendUp ? 'text-success' : 'text-error'}`}>
-          {trend}
-        </div>
       </div>
       <h3 className="mb-1 text-sm font-medium text-dark-400">{title}</h3>
       <p className="font-display text-2xl font-bold text-dark-50">{value}</p>

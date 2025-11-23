@@ -68,13 +68,13 @@ export class AnalyticsService {
 
       // Total completions
       prisma.missionResult.count({
-        where: { completed: true },
+        where: { isCompleted: true },
       }),
 
       // Recent completions (last 24 hours)
       prisma.missionResult.findMany({
         where: {
-          completed: true,
+          isCompleted: true,
           completedAt: {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
           },
@@ -199,7 +199,7 @@ export class AnalyticsService {
 
       // Successful completions
       prisma.missionResult.count({
-        where: { missionId, completed: true },
+        where: { missionId, isCompleted: true },
       }),
 
       // Average metrics
@@ -222,7 +222,7 @@ export class AnalyticsService {
             ELSE '95-100'
           END as range,
           COUNT(*) as count
-        FROM "MissionResult"
+        FROM "mission_results"
         WHERE "missionId" = ${missionId}
         GROUP BY range
         ORDER BY range
@@ -239,7 +239,7 @@ export class AnalyticsService {
             ELSE '> 60 min'
           END as range,
           COUNT(*) as count
-        FROM "MissionResult"
+        FROM "mission_results"
         WHERE "missionId" = ${missionId}
         GROUP BY range
         ORDER BY range
@@ -262,7 +262,7 @@ export class AnalyticsService {
 
       // Top scorers
       prisma.missionResult.findMany({
-        where: { missionId, completed: true },
+        where: { missionId, isCompleted: true },
         take: 5,
         orderBy: { score: 'desc' },
         include: {
@@ -282,8 +282,6 @@ export class AnalyticsService {
         title: mission.title,
         difficulty: mission.difficulty,
         type: mission.type,
-        passingScore: mission.passingScore,
-        totalScore: mission.totalScore,
       },
       metrics: {
         totalAttempts,
@@ -369,10 +367,10 @@ export class AnalyticsService {
         SELECT
           m.difficulty,
           COUNT(mr.id) as attempts,
-          SUM(CASE WHEN mr.completed THEN 1 ELSE 0 END) as completions,
+          SUM(CASE WHEN mr."isCompleted" THEN 1 ELSE 0 END) as completions,
           AVG(mr.score) as avgScore
-        FROM "MissionResult" mr
-        JOIN "Mission" m ON mr."missionId" = m.id
+        FROM "mission_results" mr
+        JOIN "missions" m ON mr."missionId" = m.id
         WHERE mr."playerId" = ${playerId}
         GROUP BY m.difficulty
       `,
@@ -382,10 +380,10 @@ export class AnalyticsService {
         SELECT
           m.type,
           COUNT(mr.id) as attempts,
-          SUM(CASE WHEN mr.completed THEN 1 ELSE 0 END) as completions,
+          SUM(CASE WHEN mr."isCompleted" THEN 1 ELSE 0 END) as completions,
           AVG(mr.score) as avgScore
-        FROM "MissionResult" mr
-        JOIN "Mission" m ON mr."missionId" = m.id
+        FROM "mission_results" mr
+        JOIN "missions" m ON mr."missionId" = m.id
         WHERE mr."playerId" = ${playerId}
         GROUP BY m.type
       `,
@@ -396,8 +394,8 @@ export class AnalyticsService {
           DATE(mr."completedAt") as date,
           COUNT(*) as missions,
           AVG(mr.score) as avgScore,
-          SUM(CASE WHEN mr.completed THEN 1 ELSE 0 END) as completed
-        FROM "MissionResult" mr
+          SUM(CASE WHEN mr."isCompleted" THEN 1 ELSE 0 END) as completed
+        FROM "mission_results" mr
         WHERE mr."playerId" = ${playerId}
           AND mr."completedAt" >= NOW() - INTERVAL '30 days'
         GROUP BY DATE(mr."completedAt")
@@ -409,14 +407,14 @@ export class AnalyticsService {
         SELECT
           m.type,
           m.difficulty,
-          AVG(mr.score / m."totalScore"::float * 100) as scorePercentage
-        FROM "MissionResult" mr
-        JOIN "Mission" m ON mr."missionId" = m.id
+          AVG(mr.score) as avgScore
+        FROM "mission_results" mr
+        JOIN "missions" m ON mr."missionId" = m.id
         WHERE mr."playerId" = ${playerId}
-          AND mr.completed = true
+          AND mr."isCompleted" = true
         GROUP BY m.type, m.difficulty
         HAVING COUNT(*) >= 3
-        ORDER BY scorePercentage DESC
+        ORDER BY avgScore DESC
         LIMIT 3
       `,
 
@@ -425,13 +423,13 @@ export class AnalyticsService {
         SELECT
           m.type,
           m.difficulty,
-          AVG(mr.score / m."totalScore"::float * 100) as scorePercentage
-        FROM "MissionResult" mr
-        JOIN "Mission" m ON mr."missionId" = m.id
+          AVG(mr.score) as avgScore
+        FROM "mission_results" mr
+        JOIN "missions" m ON mr."missionId" = m.id
         WHERE mr."playerId" = ${playerId}
         GROUP BY m.type, m.difficulty
         HAVING COUNT(*) >= 3
-        ORDER BY scorePercentage ASC
+        ORDER BY avgScore ASC
         LIMIT 3
       `,
     ]);
@@ -488,9 +486,9 @@ export class AnalyticsService {
         m.type,
         COUNT(mr.id) as attempts,
         AVG(mr.score) as avgScore,
-        SUM(CASE WHEN mr.completed THEN 1 ELSE 0 END) as completions
-      FROM "Mission" m
-      LEFT JOIN "MissionResult" mr ON m.id = mr."missionId"
+        SUM(CASE WHEN mr."isCompleted" THEN 1 ELSE 0 END) as completions
+      FROM "missions" m
+      LEFT JOIN "mission_results" mr ON m.id = mr."missionId"
         AND mr."completedAt" >= NOW() - INTERVAL '7 days'
       WHERE m."deletedAt" IS NULL
         AND m.status = 'ACTIVE'
