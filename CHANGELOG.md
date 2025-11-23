@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### CRITICAL BUG FIX - Dashboard Rendering (2025-11-23)
+
+**Commit**: 9e7cfc3 - fix: remove placeholder dashboard stub blocking real dashboard
+
+**Issue**: After login, users saw "Welcome to Mission Control / Login successful! Dashboard coming soon..." instead of the actual dashboard.
+
+**Root Cause**:
+- Placeholder stub file `app/dashboard/page.tsx` was intercepting `/dashboard` route
+- `app/page.tsx` redirects authenticated users to `/dashboard` (line 16)
+- Next.js served the stub instead of the real dashboard at `(dashboard)/page.tsx`
+- Real dashboard with analytics, stats, and ActivityFeed never loaded
+
+**Solution**:
+- Deleted `frontend/app/dashboard/page.tsx` (13 lines)
+- Removed empty `frontend/app/dashboard/` directory
+- Now `/dashboard` correctly routes to `(dashboard)/page.tsx`
+
+**Impact**:
+- ✅ Dashboard now displays real metrics and stat cards
+- ✅ Activity feed renders with polling
+- ✅ All navigation links work correctly
+- ✅ Unblocks all browser testing and user verification
+
+---
+
 ### Phase 3 - Complete Implementation ✅ COMPLETED (2025-11-23)
 
 **Commit**: bc3dfe0 - Complete Phase 3: mission forms, player pages, analytics
