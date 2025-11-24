@@ -109,7 +109,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      router.push('/login');
+      router.push('/auth/login');
     }
   }, [router]);
 
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Token refresh failed:', error);
       setUser(null);
-      router.push('/login');
+      router.push('/auth/login');
       throw error;
     }
   }, [router]);
