@@ -5,7 +5,7 @@
  * Real-time activity feed with polling from backend /api/activity/recent endpoint
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 interface Activity {
@@ -24,17 +24,17 @@ interface ActivityFeedProps {
 
 export default function ActivityFeed({ pollInterval = 10000, limit = 20 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [lastFetch, setLastFetch] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastFetchRef = useRef<string | null>(null);
 
   const fetchActivities = useCallback(async () => {
     try {
       const params: any = { limit };
 
       // Use 'since' parameter for delta updates after first fetch
-      if (lastFetch) {
-        params.since = lastFetch;
+      if (lastFetchRef.current) {
+        params.since = lastFetchRef.current;
       }
 
       const response = await axios.get('http://localhost:4000/api/activity/recent', {
@@ -49,15 +49,15 @@ export default function ActivityFeed({ pollInterval = 10000, limit = 20 }: Activ
         const newActivities = response.data.data;
 
         // If we have new activities, prepend them to existing list
-        if (lastFetch && newActivities.length > 0) {
+        if (lastFetchRef.current && newActivities.length > 0) {
           setActivities(prev => [...newActivities, ...prev].slice(0, limit));
-        } else if (!lastFetch) {
+        } else if (!lastFetchRef.current) {
           // Initial fetch
           setActivities(newActivities);
         }
 
         // Update last fetch timestamp
-        setLastFetch(response.data.timestamp);
+        lastFetchRef.current = response.data.timestamp;
         setError(null);
       }
     } catch (err: any) {
@@ -66,7 +66,7 @@ export default function ActivityFeed({ pollInterval = 10000, limit = 20 }: Activ
     } finally {
       setLoading(false);
     }
-  }, [lastFetch, limit]);
+  }, [limit]);
 
   // Initial fetch and polling setup
   useEffect(() => {
