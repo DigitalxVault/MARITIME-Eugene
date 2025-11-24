@@ -28,16 +28,24 @@ export class PlayerController {
         limit: parseInt(limit as string, 10),
       });
 
-      res.status(200).json({
+      console.log('[PlayerController] Result data length:', result.data.length);
+      console.log('[PlayerController] Result pagination:', result.pagination);
+
+      const response = {
         success: true,
         data: result.data,
-        pagination: {
+        meta: {
           page: result.pagination.page,
           limit: result.pagination.limit,
           total: result.pagination.total,
           totalPages: result.pagination.totalPages,
         },
-      });
+      };
+
+      console.log('[PlayerController] Sending response with keys:', Object.keys(response));
+      console.log('[PlayerController] Response meta:', response.meta);
+
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

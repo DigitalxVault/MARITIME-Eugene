@@ -1359,6 +1359,7 @@ app.get('/api/players', authenticate, async (req, res) => {
       include: {
         user: {
           select: {
+            id: true,
             email: true,
             role: true,
             createdAt: true,
@@ -1378,15 +1379,194 @@ app.get('/api/players', authenticate, async (req, res) => {
       }
     });
 
+    // Transform data to include username in user object
+    const transformedPlayers = players.map(player => ({
+      ...player,
+      user: {
+        ...player.user,
+        username: player.username  // Map username from PlayerProfile to user object
+      }
+    }));
+
     res.json({
       success: true,
-      data: players,
+      data: transformedPlayers,
+      meta: {
+        page: 1,
+        limit: players.length,
+        total: players.length,
+        totalPages: 1
+      }
     });
   } catch (error) {
     console.error('Get players error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch players',
+    });
+  }
+});
+
+// Get single player by ID
+app.get('/api/players/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const player = await prisma.playerProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            createdAt: true,
+          }
+        }
+      }
+    });
+
+    if (!player) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found',
+      });
+    }
+
+    // Transform data to include username in user object
+    const transformedPlayer = {
+      ...player,
+      user: {
+        ...player.user,
+        username: player.username  // Map username from PlayerProfile to user object
+      }
+    };
+
+    res.json({
+      success: true,
+      data: transformedPlayer,
+    });
+  } catch (error) {
+    console.error('Get player error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch player',
+    });
+  }
+});
+
+// Update player (ADMIN/TRAINER only)
+app.put('/api/players/:id', authenticate, authorize(['ADMIN', 'TRAINER']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rank, role } = req.body;
+
+    // Check if player exists
+    const existingPlayer = await prisma.playerProfile.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
+    if (!existingPlayer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found',
+      });
+    }
+
+    // Update player profile
+    const updatedPlayer = await prisma.playerProfile.update({
+      where: { id },
+      data: {
+        rank: rank || existingPlayer.rank,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            createdAt: true,
+          }
+        }
+      }
+    });
+
+    // Update user role if provided (ADMIN only)
+    if (role && req.user.role === 'ADMIN') {
+      await prisma.user.update({
+        where: { id: existingPlayer.userId },
+        data: { role }
+      });
+    }
+
+    // Transform data to include username in user object
+    const transformedPlayer = {
+      ...updatedPlayer,
+      user: {
+        ...updatedPlayer.user,
+        username: updatedPlayer.username  // Map username from PlayerProfile to user object
+      }
+    };
+
+    res.json({
+      success: true,
+      data: transformedPlayer,
+    });
+  } catch (error) {
+    console.error('Update player error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update player',
+    });
+  }
+});
+
+// Delete player (ADMIN only, with soft/hard delete support)
+app.delete('/api/players/:id', authenticate, authorize(['ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { hard } = req.query;
+
+    // Check if player exists
+    const player = await prisma.playerProfile.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
+    if (!player) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found',
+      });
+    }
+
+    if (hard === 'true') {
+      // Hard delete: Remove player profile and associated user
+      await prisma.playerProfile.delete({
+        where: { id }
+      });
+
+      await prisma.user.delete({
+        where: { id: player.userId }
+      });
+    } else {
+      // Soft delete: Mark user as deleted
+      await prisma.user.update({
+        where: { id: player.userId },
+        data: { deletedAt: new Date() }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Player deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete player error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete player',
     });
   }
 });

@@ -94,11 +94,22 @@ export class PlayerService {
       return {
         id: profile.id,
         userId: user.id,
-        username: profile.username,
         rank: profile.rank,
-        email: user.email,
-        role: user.role,
+        level: profile.level,
+        experiencePoints: profile.experiencePoints,
+        totalMissionsCompleted: profile.totalMissionsCompleted,
+        totalMissionsAttempted: profile.totalMissionsAttempted,
+        averageScore: profile.averageScore,
+        winRate: profile.winRate,
+        totalTimeSpent: profile.totalTimeSpent,
         createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+        user: {
+          id: user.id,
+          email: user.email,
+          username: profile.username,
+          role: user.role,
+        },
         stats: {
           totalMissions,
           completedMissions,
@@ -150,15 +161,23 @@ export class PlayerService {
     return {
       id: profile.id,
       userId: profile.user.id,
-      username: profile.username,
       rank: profile.rank,
-      email: profile.user.email,
-      role: profile.user.role,
-      createdAt: profile.user.createdAt.toISOString(),
+      level: profile.level,
+      experiencePoints: profile.experiencePoints,
+      totalMissionsCompleted: profile.totalMissionsCompleted,
+      totalMissionsAttempted: profile.totalMissionsAttempted,
       winRate: profile.winRate,
       averageScore: profile.averageScore,
       missionsCompleted: profile.missionsCompleted,
       totalTimeSpent: profile.totalTimeSpent,
+      createdAt: profile.user.createdAt.toISOString(),
+      updatedAt: profile.user.updatedAt.toISOString(),
+      user: {
+        id: profile.user.id,
+        email: profile.user.email,
+        username: profile.username,
+        role: profile.user.role,
+      },
     };
   }
 

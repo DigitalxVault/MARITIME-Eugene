@@ -1,6 +1,3 @@
-// Prisma schema for Mission Control Dashboard - Maritime Training System
-// Database: PostgreSQL
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,7 +7,102 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== ENUMS ====================
+model User {
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  password           String
+  role               UserRole
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
+  playerProfile      PlayerProfile?
+  trainerAssignments TrainerAssignment[] @relation("TrainerAssignments")
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model PlayerProfile {
+  id                     String              @id @default(cuid())
+  userId                 String              @unique
+  username               String              @unique
+  rank                   String              @default("Cadet")
+  winRate                Float               @default(0.0)
+  averageScore           Float               @default(0.0)
+  missionsCompleted      Int                 @default(0)
+  totalTimeSpent         Int                 @default(0)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  totalScore             Float               @default(0.0)
+  experiencePoints       Int                 @default(0)
+  level                  Int                 @default(1)
+  totalMissionsAttempted Int                 @default(0)
+  totalMissionsCompleted Int                 @default(0)
+  missionResults         MissionResult[]
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTrainers       TrainerAssignment[] @relation("AssignedToTrainers")
+
+  @@index([username])
+  @@index([totalScore])
+  @@map("player_profiles")
+}
+
+model Mission {
+  id                 String          @id @default(cuid())
+  title              String
+  description        String
+  difficulty         Difficulty
+  type               MissionType
+  duration           Int
+  status             MissionStatus   @default(DRAFT)
+  learningObjectives String[]        @default([])
+  createdBy          String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  deletedAt          DateTime?
+  results            MissionResult[]
+
+  @@index([difficulty, type, status])
+  @@index([status])
+  @@index([createdBy])
+  @@map("missions")
+}
+
+model MissionResult {
+  id           String        @id @default(cuid())
+  missionId    String
+  playerId     String
+  score        Float
+  timeSpent    Int
+  completedAt  DateTime      @default(now())
+  isCompleted  Boolean       @default(true)
+  achievements String[]      @default([])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  mission      Mission       @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  player       PlayerProfile @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+  @@index([playerId])
+  @@index([completedAt])
+  @@map("mission_results")
+}
+
+model TrainerAssignment {
+  id         String        @id @default(cuid())
+  trainerId  String
+  playerId   String
+  assignedAt DateTime      @default(now())
+  assignedBy String
+  player     PlayerProfile @relation("AssignedToTrainers", fields: [playerId], references: [id], onDelete: Cascade)
+  trainer    User          @relation("TrainerAssignments", fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@unique([trainerId, playerId])
+  @@index([trainerId])
+  @@index([playerId])
+  @@map("trainer_assignments")
+}
 
 enum UserRole {
   ADMIN
@@ -25,129 +117,12 @@ enum Difficulty {
 }
 
 enum MissionType {
-  PVE       // Player vs Environment (Campaign)
-  PVP       // Player vs Player (Multiplayer)
+  PVE
+  PVP
 }
 
 enum MissionStatus {
   DRAFT
   ACTIVE
   ARCHIVED
-}
-
-// ==================== MODELS ====================
-
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String   // bcrypt hashed
-  role      UserRole
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime? // Soft delete support
-
-  // Relations
-  playerProfile      PlayerProfile?
-  trainerAssignments TrainerAssignment[] @relation("TrainerAssignments")
-
-  @@index([email])
-  @@index([role])
-  @@map("users")
-}
-
-model PlayerProfile {
-  id       String @id @default(cuid())
-  userId   String @unique
-  username String @unique
-  rank     String @default("Cadet")
-
-  // Performance Metrics
-  winRate          Float   @default(0.0) // PvP win rate (0.0 - 1.0)
-  totalScore       Float   @default(0.0) // Cumulative mission score
-  averageScore     Float   @default(0.0) // Average mission score
-  missionsCompleted Int    @default(0)
-  totalTimeSpent   Int     @default(0) // Total time in minutes
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  missionResults   MissionResult[]
-  assignedTrainers TrainerAssignment[]   @relation("AssignedToTrainers")
-
-  @@index([username])
-  @@index([totalScore])
-  @@map("player_profiles")
-}
-
-model Mission {
-  id          String   @id @default(cuid())
-  title       String
-  description String   @db.Text
-  difficulty  Difficulty
-  type        MissionType
-  duration    Int      // Duration in minutes
-  status      MissionStatus @default(DRAFT)
-
-  // Learning objectives stored as array
-  learningObjectives String[] @default([])
-
-  // Metadata
-  createdBy String   // User ID who created the mission
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime? // Soft delete support
-
-  // Relations
-  results MissionResult[]
-
-  @@index([difficulty, type, status])
-  @@index([status])
-  @@index([createdBy])
-  @@map("missions")
-}
-
-model MissionResult {
-  id       String  @id @default(cuid())
-  missionId String
-  playerId  String
-
-  // Result Data
-  score         Float    // Mission score (0-100)
-  timeSpent     Int      // Time spent in minutes
-  completedAt   DateTime @default(now())
-  isCompleted   Boolean  @default(true)
-
-  // Optional metadata
-  achievements String[] @default([]) // Achievement IDs earned
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  mission Mission        @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  player  PlayerProfile  @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@index([missionId])
-  @@index([playerId])
-  @@index([completedAt])
-  @@map("mission_results")
-}
-
-model TrainerAssignment {
-  id         String   @id @default(cuid())
-  trainerId  String   // User ID where role = TRAINER
-  playerId   String   // PlayerProfile ID
-  assignedAt DateTime @default(now())
-  assignedBy String   // User ID who made the assignment (ADMIN)
-
-  // Relations
-  trainer User          @relation("TrainerAssignments", fields: [trainerId], references: [id], onDelete: Cascade)
-  player  PlayerProfile @relation("AssignedToTrainers", fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@unique([trainerId, playerId])
-  @@index([trainerId])
-  @@index([playerId])
-  @@map("trainer_assignments")
 }

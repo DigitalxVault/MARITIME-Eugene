@@ -1,289 +1,304 @@
+/**
+ * Database Seed Script - Realistic Maritime Training Data
+ * Creates comprehensive test data for Mission Control Dashboard
+ *
+ * Run with: npx prisma db seed
+ */
+
 import { PrismaClient, UserRole, Difficulty, MissionType, MissionStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Load environment variables from .env file in root directory
-// The seed script runs from backend directory, so we need to go up one level
+// Load environment variables
 const envPath = path.resolve(process.cwd(), '../.env');
 dotenv.config({ path: envPath });
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seeding...');
+  console.log('🌱 Starting database seed...\n');
 
-  // Clear existing data (in development only)
-  await prisma.trainerAssignment.deleteMany();
+  // ===== STEP 1: Clean up existing data =====
+  console.log('🧹 Cleaning up existing data...');
   await prisma.missionResult.deleteMany();
-  await prisma.playerProfile.deleteMany();
+  await prisma.trainerAssignment.deleteMany();
   await prisma.mission.deleteMany();
+  await prisma.playerProfile.deleteMany();
   await prisma.user.deleteMany();
-  console.log('✅ Cleared existing data');
+  console.log('✅ Database cleaned\n');
 
-  // Hash passwords with salt rounds = 10 (as per PRD requirement)
-  const saltRounds = 10;
-  const hashedAdminPassword = await bcrypt.hash('Admin123!', saltRounds);
-  const hashedTrainerPassword = await bcrypt.hash('Trainer123!', saltRounds);
-  const hashedLearnerPassword = await bcrypt.hash('Cadet123!', saltRounds);
+  // ===== STEP 2: Create Admin Users =====
+  console.log('👨‍💼 Creating Admin users...');
+  const adminPassword = await bcrypt.hash('Admin123!', 10);
 
-  // Create Users
-  console.log('👥 Creating users...');
-
-  const adminUser = await prisma.user.create({
+  const admin1 = await prisma.user.create({
     data: {
       email: 'admin@navytraining.sg',
-      password: hashedAdminPassword,
+      password: adminPassword,
       role: UserRole.ADMIN,
     },
   });
-  console.log(`  ✅ Created ADMIN: ${adminUser.email}`);
 
-  const trainerUser = await prisma.user.create({
+  const admin2 = await prisma.user.create({
+    data: {
+      email: 'senior.admin@navytraining.sg',
+      password: adminPassword,
+      role: UserRole.ADMIN,
+    },
+  });
+
+  console.log(`  ✓ Created: ${admin1.email}`);
+  console.log(`  ✓ Created: ${admin2.email}\n`);
+
+  // ===== STEP 3: Create Trainer Users =====
+  console.log('👨‍🏫 Creating Trainer users...');
+  const trainerPassword = await bcrypt.hash('Trainer123!', 10);
+
+  const trainer1 = await prisma.user.create({
     data: {
       email: 'trainer@navytraining.sg',
-      password: hashedTrainerPassword,
+      password: trainerPassword,
       role: UserRole.TRAINER,
     },
   });
-  console.log(`  ✅ Created TRAINER: ${trainerUser.email}`);
 
-  const learnerUser = await prisma.user.create({
+  const trainer2 = await prisma.user.create({
     data: {
-      email: 'cadet.tan@navytraining.sg',
-      password: hashedLearnerPassword,
-      role: UserRole.LEARNER,
-      playerProfile: {
-        create: {
-          username: 'Cadet_Tan_Wei_Ming',
-          rank: 'Naval Cadet',
-          winRate: 0.75,
-          averageScore: 85.5,
-          missionsCompleted: 5,
-          totalTimeSpent: 180,
-        },
-      },
-    },
-    include: {
-      playerProfile: true,
+      email: 'cpt.lim@navytraining.sg',
+      password: trainerPassword,
+      role: UserRole.TRAINER,
     },
   });
-  console.log(`  ✅ Created LEARNER: ${learnerUser.email} with PlayerProfile`);
 
-  // Create additional learners
-  const learner2User = await prisma.user.create({
+  const trainer3 = await prisma.user.create({
     data: {
-      email: 'cadet.lim@navytraining.sg',
-      password: hashedLearnerPassword,
-      role: UserRole.LEARNER,
-      playerProfile: {
-        create: {
-          username: 'Cadet_Lim_Kai_Rong',
-          rank: 'Naval Cadet',
-          winRate: 0.65,
-          averageScore: 78.0,
-          missionsCompleted: 3,
-          totalTimeSpent: 120,
-        },
-      },
-    },
-    include: {
-      playerProfile: true,
+      email: 'lt.rahman@navytraining.sg',
+      password: trainerPassword,
+      role: UserRole.TRAINER,
     },
   });
-  console.log(`  ✅ Created LEARNER: ${learner2User.email} with PlayerProfile`);
 
-  const learner3User = await prisma.user.create({
-    data: {
-      email: 'cadet.chen@navytraining.sg',
-      password: hashedLearnerPassword,
-      role: UserRole.LEARNER,
-      playerProfile: {
-        create: {
-          username: 'Cadet_Chen_Hui_Min',
-          rank: 'Naval Cadet',
-          winRate: 0.80,
-          averageScore: 90.5,
-          missionsCompleted: 8,
-          totalTimeSpent: 240,
-        },
+  console.log(`  ✓ Created: ${trainer1.email}`);
+  console.log(`  ✓ Created: ${trainer2.email}`);
+  console.log(`  ✓ Created: ${trainer3.email}\n`);
+
+  // ===== STEP 4: Create Learner Users with Player Profiles =====
+  console.log('🎓 Creating Learner users with player profiles...');
+  const learnerPassword = await bcrypt.hash('Cadet123!', 10);
+
+  const learners = [
+    { email: 'cadet.tan@navytraining.sg', username: 'TanWeiMing', rank: 'Midshipman', level: 8, xp: 3500, winRate: 0.82, avgScore: 88.5, missions: 15, attempts: 18, time: 280 },
+    { email: 'cadet.wong@navytraining.sg', username: 'WongJiaHao', rank: 'Cadet', level: 5, xp: 2100, winRate: 0.68, avgScore: 76.0, missions: 8, attempts: 12, time: 180 },
+    { email: 'cadet.kumar@navytraining.sg', username: 'KumarRaj', rank: 'Cadet', level: 4, xp: 1800, winRate: 0.72, avgScore: 79.5, missions: 7, attempts: 10, time: 150 },
+    { email: 'cadet.chen@navytraining.sg', username: 'ChenXiaoLing', rank: 'Cadet', level: 6, xp: 2650, winRate: 0.75, avgScore: 82.0, missions: 11, attempts: 15, time: 220 },
+    { email: 'cadet.ibrahim@navytraining.sg', username: 'IbrahimHassan', rank: 'Midshipman', level: 9, xp: 4200, winRate: 0.85, avgScore: 91.0, missions: 18, attempts: 21, time: 320 },
+    { email: 'cadet.ng@navytraining.sg', username: 'NgKaiWen', rank: 'Cadet', level: 3, xp: 1400, winRate: 0.65, avgScore: 73.5, missions: 5, attempts: 8, time: 120 },
+    { email: 'cadet.leong@navytraining.sg', username: 'LeongMeiLing', rank: 'Midshipman', level: 7, xp: 3100, winRate: 0.78, avgScore: 85.5, missions: 13, attempts: 17, time: 260 },
+    { email: 'cadet.yusof@navytraining.sg', username: 'YusofMuhammad', rank: 'Cadet', level: 5, xp: 2300, winRate: 0.70, avgScore: 77.5, missions: 9, attempts: 13, time: 190 },
+  ];
+
+  const playerProfiles: any[] = [];
+
+  for (const learnerData of learners) {
+    const user = await prisma.user.create({
+      data: {
+        email: learnerData.email,
+        password: learnerPassword,
+        role: UserRole.LEARNER,
       },
-    },
-    include: {
-      playerProfile: true,
-    },
-  });
-  console.log(`  ✅ Created LEARNER: ${learner3User.email} with PlayerProfile`);
+    });
 
-  // Create Sample Missions (Singapore Maritime Context)
-  console.log('🎯 Creating sample missions...');
+    const profile = await prisma.playerProfile.create({
+      data: {
+        userId: user.id,
+        username: learnerData.username,
+        rank: learnerData.rank,
+        level: learnerData.level,
+        experiencePoints: learnerData.xp,
+        winRate: learnerData.winRate,
+        totalScore: learnerData.avgScore * learnerData.missions * 100,
+        averageScore: learnerData.avgScore,
+        missionsCompleted: learnerData.missions,
+        totalMissionsCompleted: learnerData.missions,
+        totalMissionsAttempted: learnerData.attempts,
+        totalTimeSpent: learnerData.time,
+      },
+    });
 
-  const mission1 = await prisma.mission.create({
-    data: {
+    playerProfiles.push(profile);
+    console.log(`  ✓ Created: ${learnerData.username} (${learnerData.rank}, Level ${learnerData.level}, ${learnerData.missions} missions)`);
+  }
+  console.log('');
+
+  // ===== STEP 5: Create Realistic Missions =====
+  console.log('🎯 Creating missions...');
+
+  const missions = [
+    {
       title: 'Marina Bay Navigation',
-      description: 'Basic navigation exercise in Singapore\'s Marina Bay area. Perfect for cadets learning fundamental maritime navigation skills.',
+      description: 'Basic navigation exercise in Singapore\'s Marina Bay area. Learn fundamental maritime navigation skills and vessel control in calm waters.',
       difficulty: Difficulty.EASY,
       type: MissionType.PVE,
       status: MissionStatus.ACTIVE,
       duration: 20,
       learningObjectives: ['Basic Navigation', 'Chart Reading', 'Vessel Control'],
-      createdBy: trainerUser.id,
+      createdBy: admin1.id,
     },
-  });
-  console.log(`  ✅ Created Mission: ${mission1.title}`);
-
-  const mission2 = await prisma.mission.create({
-    data: {
-      title: 'Singapore Strait Patrol',
-      description: 'Navigate through the busy Singapore Strait while avoiding civilian traffic and maintaining maritime security protocols. This mission simulates real-world patrol scenarios in one of the world\'s busiest shipping lanes.',
+    {
+      title: 'Johor Strait Patrol',
+      description: 'Navigate through the Johor Strait while maintaining patrol protocols. Practice situational awareness and maritime communication.',
+      difficulty: Difficulty.EASY,
+      type: MissionType.PVE,
+      status: MissionStatus.ACTIVE,
+      duration: 25,
+      learningObjectives: ['Navigation', 'Communication', 'Situational Awareness'],
+      createdBy: admin1.id,
+    },
+    {
+      title: 'Singapore Strait Traffic Management',
+      description: 'Navigate through the busy Singapore Strait while avoiding civilian traffic and maintaining maritime security protocols. One of the world\'s busiest shipping lanes.',
+      difficulty: Difficulty.MEDIUM,
+      type: MissionType.PVE,
+      status: MissionStatus.ACTIVE,
+      duration: 35,
+      learningObjectives: ['Navigation', 'Traffic Management', 'Communication', 'Situational Awareness'],
+      createdBy: admin1.id,
+    },
+    {
+      title: 'Night Navigation Exercise',
+      description: 'Advanced navigation training during nighttime conditions around Singapore waters. Use radar and navigation instruments effectively.',
       difficulty: Difficulty.MEDIUM,
       type: MissionType.PVE,
       status: MissionStatus.ACTIVE,
       duration: 30,
-      learningObjectives: ['Navigation', 'Traffic Management', 'Communication', 'Situational Awareness'],
-      createdBy: adminUser.id,
+      learningObjectives: ['Night Navigation', 'Radar Operation', 'Instrument Reading'],
+      createdBy: admin2.id,
     },
-  });
-  console.log(`  ✅ Created Mission: ${mission2.title}`);
-
-  const mission3 = await prisma.mission.create({
-    data: {
+    {
+      title: 'Emergency Response Drill',
+      description: 'Respond to simulated maritime emergencies including vessel distress and search and rescue operations in Singapore waters.',
+      difficulty: Difficulty.MEDIUM,
+      type: MissionType.PVE,
+      status: MissionStatus.ACTIVE,
+      duration: 40,
+      learningObjectives: ['Emergency Response', 'Search and Rescue', 'Crisis Management'],
+      createdBy: admin2.id,
+    },
+    {
       title: 'Jurong Port Defense',
       description: 'Coordinate defense operations for Singapore\'s Jurong Port during a simulated security threat. Practice multi-vessel coordination and rapid response protocols.',
       difficulty: Difficulty.HARD,
       type: MissionType.PVP,
       status: MissionStatus.ACTIVE,
       duration: 45,
-      learningObjectives: ['Tactical Planning', 'Team Coordination', 'Crisis Management'],
-      createdBy: adminUser.id,
+      learningObjectives: ['Tactical Planning', 'Team Coordination', 'Crisis Management', 'Defense Operations'],
+      createdBy: admin1.id,
     },
-  });
-  console.log(`  ✅ Created Mission: ${mission3.title}`);
+    {
+      title: 'Fleet Coordination Exercise',
+      description: 'Advanced team-based exercise coordinating multiple vessels in Singapore waters. Requires excellent communication and strategic thinking.',
+      difficulty: Difficulty.HARD,
+      type: MissionType.PVP,
+      status: MissionStatus.ACTIVE,
+      duration: 50,
+      learningObjectives: ['Fleet Coordination', 'Strategic Planning', 'Team Communication'],
+      createdBy: admin2.id,
+    },
+    {
+      title: 'Changi Naval Base Security',
+      description: 'DRAFT mission for advanced security operations around Changi Naval Base. Includes threat assessment and response protocols.',
+      difficulty: Difficulty.HARD,
+      type: MissionType.PVE,
+      status: MissionStatus.DRAFT,
+      duration: 60,
+      learningObjectives: ['Threat Assessment', 'Security Operations', 'Naval Base Protection'],
+      createdBy: admin1.id,
+    },
+  ];
 
-  // Create Sample Mission Results for the Learner
-  console.log('📊 Creating sample mission results...');
-
-  if (learnerUser.playerProfile) {
-    const result1 = await prisma.missionResult.create({
-      data: {
-        missionId: mission1.id,
-        playerId: learnerUser.playerProfile.id,
-        score: 92.5,
-        timeSpent: 18,
-        isCompleted: true,
-        achievements: ['First_Mission', 'Perfect_Navigation'],
-        completedAt: new Date('2024-11-15T10:30:00Z'),
-      },
+  const createdMissions: any[] = [];
+  for (const missionData of missions) {
+    const mission = await prisma.mission.create({
+      data: missionData,
     });
-    console.log(`  ✅ Created MissionResult: ${mission1.title} - Score: ${result1.score}`);
+    createdMissions.push(mission);
+    console.log(`  ✓ Created: ${mission.title} (${mission.difficulty})`);
+  }
+  console.log('');
 
-    const result2 = await prisma.missionResult.create({
-      data: {
-        missionId: mission2.id,
-        playerId: learnerUser.playerProfile.id,
-        score: 88.0,
-        timeSpent: 28,
-        isCompleted: true,
-        achievements: ['Strait_Master', 'Communication_Expert'],
-        completedAt: new Date('2024-11-18T14:45:00Z'),
-      },
-    });
-    console.log(`  ✅ Created MissionResult: ${mission2.title} - Score: ${result2.score}`);
+  // ===== STEP 6: Create Mission Results (Player Performance) =====
+  console.log('📊 Creating mission results...');
 
-    const result3 = await prisma.missionResult.create({
-      data: {
-        missionId: mission1.id,
-        playerId: learnerUser.playerProfile.id,
-        score: 95.0,
-        timeSpent: 16,
-        isCompleted: true,
-        achievements: ['Speed_Demon', 'Flawless_Execution'],
-        completedAt: new Date('2024-11-20T09:15:00Z'),
-      },
-    });
-    console.log(`  ✅ Created MissionResult: ${mission1.title} (2nd attempt) - Score: ${result3.score}`);
+  let resultsCount = 0;
+  const activeMissions = createdMissions.filter(m => m.status === MissionStatus.ACTIVE);
 
-    // Add results for other learners
-    if (learner2User.playerProfile) {
+  for (const player of playerProfiles) {
+    // Give each player 3-6 completed missions
+    const numMissions = Math.floor(Math.random() * 4) + 3;
+    const selectedMissions = activeMissions
+      .sort(() => Math.random() - 0.5)
+      .slice(0, numMissions);
+
+    for (const mission of selectedMissions) {
+      const score = parseFloat((Math.random() * 25 + 72).toFixed(1));
+      const timeSpent = Math.floor(mission.duration * (Math.random() * 0.3 + 0.85));
+
       await prisma.missionResult.create({
         data: {
-          missionId: mission1.id,
-          playerId: learner2User.playerProfile.id,
-          score: 75.0,
-          timeSpent: 22,
+          missionId: mission.id,
+          playerId: player.id,
+          score,
+          timeSpent,
+          completedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
           isCompleted: true,
-          achievements: ['First_Mission'],
-          completedAt: new Date('2024-11-16T11:30:00Z'),
+          achievements: score >= 90 ? ['Perfect Score', 'Quick Completion'] : score >= 80 ? ['Good Performance'] : [],
         },
       });
-      console.log(`  ✅ Created MissionResult for ${learner2User.playerProfile.username}`);
-    }
-
-    if (learner3User.playerProfile) {
-      await prisma.missionResult.create({
-        data: {
-          missionId: mission2.id,
-          playerId: learner3User.playerProfile.id,
-          score: 94.0,
-          timeSpent: 25,
-          isCompleted: true,
-          achievements: ['Strait_Master', 'Perfect_Score'],
-          completedAt: new Date('2024-11-17T13:00:00Z'),
-        },
-      });
-      console.log(`  ✅ Created MissionResult for ${learner3User.playerProfile.username}`);
+      resultsCount++;
     }
   }
 
-  // Create Trainer Assignments
-  console.log('👨‍🏫 Creating trainer assignments...');
+  console.log(`  ✓ Created ${resultsCount} mission results\n`);
 
-  if (learnerUser.playerProfile && learner2User.playerProfile && learner3User.playerProfile) {
-    await prisma.trainerAssignment.createMany({
-      data: [
-        {
-          trainerId: trainerUser.id,
-          playerId: learnerUser.playerProfile.id,
-          assignedBy: adminUser.id,
-        },
-        {
-          trainerId: trainerUser.id,
-          playerId: learner2User.playerProfile.id,
-          assignedBy: adminUser.id,
-        },
-        {
-          trainerId: trainerUser.id,
-          playerId: learner3User.playerProfile.id,
-          assignedBy: adminUser.id,
-        },
-      ],
+  // ===== STEP 7: Create Trainer Assignments =====
+  console.log('🔗 Creating trainer assignments...');
+
+  const trainers = [trainer1, trainer2, trainer3];
+  let assignmentCount = 0;
+
+  for (let i = 0; i < playerProfiles.length; i++) {
+    const trainer = trainers[i % trainers.length];
+    await prisma.trainerAssignment.create({
+      data: {
+        trainerId: trainer.id,
+        playerId: playerProfiles[i].id,
+        assignedBy: admin1.id,
+      },
     });
-    console.log(`  ✅ Assigned 3 players to trainer`);
+    assignmentCount++;
   }
 
-  console.log('');
-  console.log('🎉 Database seeding completed successfully!');
-  console.log('');
+  console.log(`  ✓ Created ${assignmentCount} trainer assignments\n`);
+
+  // ===== SUMMARY =====
+  console.log('✨ Database seed completed!\n');
   console.log('📋 Summary:');
-  console.log(`  - Users created: 5 (1 ADMIN, 1 TRAINER, 3 LEARNERs)`);
-  console.log(`  - Missions created: 3 (Easy, Medium, Hard)`);
-  console.log(`  - Mission results created: 5`);
-  console.log(`  - Player profiles created: 3`);
-  console.log(`  - Trainer assignments created: 3`);
-  console.log('');
-  console.log('🔐 Login Credentials:');
-  console.log('  ADMIN:   admin@navytraining.sg / Admin123!');
-  console.log('  TRAINER: trainer@navytraining.sg / Trainer123!');
-  console.log('  LEARNER: cadet.tan@navytraining.sg / Cadet123!');
-  console.log('  LEARNER: cadet.lim@navytraining.sg / Cadet123!');
-  console.log('  LEARNER: cadet.chen@navytraining.sg / Cadet123!');
-  console.log('');
+  console.log(`  • Users: ${learners.length + 5} (2 admins, 3 trainers, ${learners.length} learners)`);
+  console.log(`  • Player Profiles: ${playerProfiles.length}`);
+  console.log(`  • Missions: ${createdMissions.length} (${activeMissions.length} active, ${createdMissions.length - activeMissions.length} draft)`);
+  console.log(`  • Mission Results: ${resultsCount}`);
+  console.log(`  • Trainer Assignments: ${assignmentCount}\n`);
+
+  console.log('🔐 Test Accounts:');
+  console.log('  Admin:   admin@navytraining.sg / Admin123!');
+  console.log('  Trainer: trainer@navytraining.sg / Trainer123!');
+  console.log('  Learner: cadet.tan@navytraining.sg / Cadet123!\n');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error during seeding:');
-    console.error(e);
+    console.error('❌ Error during seeding:', e);
     process.exit(1);
   })
   .finally(async () => {
