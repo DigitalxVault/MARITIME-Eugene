@@ -40,11 +40,6 @@ export default function DashboardPage() {
     staleTime: 20000, // Consider data stale after 20 seconds
   });
 
-  // Calculate average score (0-100)
-  const averageScore = analytics?.metrics?.totalCompletions
-    ? Math.round((analytics.metrics.totalCompletions / (analytics.metrics.totalMissions * analytics.metrics.totalPlayers || 1)) * 100)
-    : 0;
-
   return (
     <div className="p-6">
       <div className="mb-8">

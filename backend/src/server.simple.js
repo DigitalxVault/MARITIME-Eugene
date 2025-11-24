@@ -598,20 +598,50 @@ app.get('/api/players', authenticate, async (req, res) => {
 // Analytics: Overview
 app.get('/api/analytics/overview', async (_req, res) => {
   try {
-    const [totalMissions, totalPlayers, activeMissions, completedResults] = await Promise.all([
+    const [totalMissions, totalPlayers, activeMissions, totalCompletions] = await Promise.all([
       prisma.mission.count({ where: { deletedAt: null } }),
       prisma.playerProfile.count(),
       prisma.mission.count({ where: { status: 'ACTIVE', deletedAt: null } }),
       prisma.missionResult.count({ where: { isCompleted: true } }),
     ]);
 
+    // Calculate completion rate (percentage of completed missions vs total active missions)
+    const completionRate = activeMissions > 0
+      ? Math.round((totalCompletions / (activeMissions * totalPlayers || 1)) * 100)
+      : 0;
+
+    // For active players, count players with at least one recent result (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const activePlayers = await prisma.playerProfile.count({
+      where: {
+        results: {
+          some: {
+            createdAt: {
+              gte: thirtyDaysAgo,
+            }
+          }
+        }
+      }
+    });
+
     res.json({
       success: true,
       data: {
-        totalMissions,
-        totalPlayers,
-        activeMissions,
-        completedResults,
+        metrics: {
+          totalMissions,
+          activeMissions,
+          totalPlayers,
+          activePlayers,
+          totalCompletions,
+          completionRate,
+        },
+        recentActivity: [], // Will be populated by /api/activity/recent endpoint
+        distributions: {
+          missionsByDifficulty: [], // Future implementation
+          missionsByType: [], // Future implementation
+        }
       }
     });
   } catch (error) {
