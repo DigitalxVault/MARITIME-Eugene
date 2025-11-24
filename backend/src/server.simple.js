@@ -1863,22 +1863,21 @@ app.get('/api/analytics/overview', async (_req, res) => {
     );
 
     // Mission counts by type (for "Missions by Type" chart)
-    const missionTypes = ['NAVIGATION', 'COMBAT', 'RESCUE', 'PATROL'];
-    const missionsByType = await Promise.all(
-      missionTypes.map(async (type) => {
-        const count = await prisma.mission.count({
-          where: {
-            type,
-            deletedAt: null,
-          }
-        });
+    const missionsByType = await prisma.mission.groupBy({
+      by: ['type'],
+      where: {
+        deletedAt: null,
+      },
+      _count: {
+        id: true,
+      },
+    });
 
-        return {
-          type,
-          count, // Chart expects this format
-        };
-      })
-    );
+    // Transform to match chart format
+    const formattedMissionsByType = missionsByType.map(group => ({
+      type: group.type,
+      count: group._count.id,
+    }));
 
     res.json({
       success: true,
@@ -1909,7 +1908,7 @@ app.get('/api/analytics/overview', async (_req, res) => {
         })),
         distributions: {
           missionsByDifficulty: completionRatesByDifficulty,
-          missionsByType, // Changed from averageScoresByType to match frontend expectations
+          missionsByType: formattedMissionsByType, // Changed from averageScoresByType to match frontend expectations
         }
       }
     });
