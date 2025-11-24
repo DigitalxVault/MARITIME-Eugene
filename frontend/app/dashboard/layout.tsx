@@ -21,31 +21,31 @@ interface DashboardLayoutProps {
 const navigationItems = [
   {
     label: 'Dashboard',
-    href: '/',
+    href: '/dashboard',
     icon: HomeIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
   },
   {
     label: 'Missions',
-    href: '/missions',
+    href: '/dashboard/missions',
     icon: MissionIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
   },
   {
     label: 'Players',
-    href: '/players',
+    href: '/dashboard/players',
     icon: UsersIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER],
   },
   {
     label: 'Leaderboard',
-    href: '/leaderboard',
+    href: '/dashboard/leaderboard',
     icon: TrophyIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
   },
   {
     label: 'Analytics',
-    href: '/analytics',
+    href: '/dashboard/analytics',
     icon: ChartIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER],
   },

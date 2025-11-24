@@ -61,8 +61,8 @@ export default function LoginPage() {
         // Force a small delay to ensure token is saved
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Redirect to root - dashboard is at / inside (dashboard) route group
-        window.location.href = '/';
+        // Redirect to dashboard after successful login
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
