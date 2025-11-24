@@ -5,6 +5,9 @@ export interface AuthenticatedRequest extends Request {
   user?: JWTPayload;
 }
 
+// Alias for backward compatibility
+export type AuthRequest = AuthenticatedRequest;
+
 export interface JwtPayload {
   userId: string;
   email: string;

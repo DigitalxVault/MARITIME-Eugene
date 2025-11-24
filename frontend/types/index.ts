@@ -20,10 +20,9 @@ export enum MissionStatus {
 }
 
 export enum MissionDifficulty {
-  BEGINNER = 'BEGINNER',
-  INTERMEDIATE = 'INTERMEDIATE',
-  ADVANCED = 'ADVANCED',
-  EXPERT = 'EXPERT'
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD'
 }
 
 export enum AttemptStatus {
@@ -50,25 +49,26 @@ export interface User {
   updatedAt: string;
 }
 
+export enum MissionType {
+  PVE = 'PVE',
+  PVP = 'PVP'
+}
+
 export interface Mission {
   id: string;
   title: string;
   description: string;
   difficulty: MissionDifficulty;
+  type: MissionType;
+  duration: number; // in minutes
   status: MissionStatus;
-  estimatedDuration: number; // in minutes
-  passingScore: number;
-  maxAttempts?: number;
-  objectives: MissionObjective[];
-  scenarios: MissionScenario[];
-  tags?: string[];
-  createdById: string;
-  createdBy?: User;
+  learningObjectives: string[];
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string | null;
   _count?: {
-    attempts: number;
-    players: number;
+    results: number;
   };
 }
 
@@ -237,9 +237,8 @@ export interface PaginationParams {
 export interface MissionFilters extends PaginationParams {
   status?: MissionStatus;
   difficulty?: MissionDifficulty;
+  type?: MissionType;
   search?: string;
-  tags?: string[];
-  createdById?: string;
 }
 
 export interface PlayerFilters extends PaginationParams {
@@ -266,13 +265,10 @@ export interface MissionFormData {
   title: string;
   description: string;
   difficulty: MissionDifficulty;
+  type: MissionType;
+  duration: number;
   status: MissionStatus;
-  estimatedDuration: number;
-  passingScore: number;
-  maxAttempts?: number;
-  objectives: Omit<MissionObjective, 'id' | 'missionId' | 'createdAt' | 'updatedAt'>[];
-  scenarios: Omit<MissionScenario, 'id' | 'missionId' | 'createdAt' | 'updatedAt'>[];
-  tags?: string[];
+  learningObjectives: string[];
 }
 
 export interface PlayerProfileUpdateData {

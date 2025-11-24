@@ -53,12 +53,13 @@ export default function LoginPage() {
       });
 
       if (response.data.success) {
-        // Store token
-        if (response.data.data.accessToken) {
-          localStorage.setItem('accessToken', response.data.data.accessToken);
+        // Store tokens from correct path
+        if (response.data.tokens?.accessToken) {
+          localStorage.setItem('accessToken', response.data.tokens.accessToken);
+          localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
         }
 
-        // Force a small delay to ensure token is saved
+        // Force a small delay to ensure tokens are saved
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Redirect to dashboard after successful login

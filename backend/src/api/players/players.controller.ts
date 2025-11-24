@@ -1,14 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { playerService } from './players.service';
 import { UserRole } from '@prisma/client';
+import { JWTPayload } from '../../services/jwt.service';
 
 // Extend Express Request to include user
 interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: UserRole;
-  };
+  user?: JWTPayload;
 }
 
 export class PlayerController {
@@ -17,7 +14,7 @@ export class PlayerController {
    * Get all players with pagination and filtering
    * @access ADMIN, TRAINER only
    */
-  async getPlayers(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayers(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { search, role, page = '1', limit = '10' } = req.query;
 
@@ -56,37 +53,40 @@ export class PlayerController {
    * Get player by ID with stats
    * @access ADMIN, TRAINER can view any, LEARNER can only view own
    */
-  async getPlayerById(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayerById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const userId = req.user?.id;
-      const userRole = req.user?.role;
+      const userId = req.user?.userId;
+      const userRole = req.user?.role as UserRole | undefined;
 
       if (!userId || !userRole) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'Authentication required',
         });
+        return;
       }
 
       // Check RBAC: LEARNER can only view own profile
       if (userRole === UserRole.LEARNER) {
         const player = await playerService.getPlayerById(id);
         if (!player || player.userId !== userId) {
-          return res.status(403).json({
+          res.status(403).json({
             success: false,
             message: 'You can only view your own profile',
           });
+          return;
         }
       }
 
       const player = await playerService.getPlayerById(id);
 
       if (!player) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Player not found',
         });
+        return;
       }
 
       // Get statistics
@@ -109,27 +109,29 @@ export class PlayerController {
    * Get player progress (mission results for charts)
    * @access ADMIN, TRAINER can view any, LEARNER can only view own
    */
-  async getPlayerProgress(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayerProgress(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
-      const userId = req.user?.id;
-      const userRole = req.user?.role;
+      const userId = req.user?.userId;
+      const userRole = req.user?.role as UserRole | undefined;
 
       if (!userId || !userRole) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'Authentication required',
         });
+        return;
       }
 
       // Check RBAC: LEARNER can only view own progress
       if (userRole === UserRole.LEARNER) {
         const player = await playerService.getPlayerById(id);
         if (!player || player.userId !== userId) {
-          return res.status(403).json({
+          res.status(403).json({
             success: false,
             message: 'You can only view your own progress',
           });
+          return;
         }
       }
 

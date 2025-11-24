@@ -1,4 +1,4 @@
-import { PrismaClient, PlayerProfile, UserRole, Prisma } from '@prisma/client';
+import { PrismaClient, UserRole, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -9,21 +9,22 @@ interface GetPlayersParams {
   limit: number;
 }
 
-interface PlayerWithStats extends PlayerProfile {
-  user: {
-    id: string;
-    email: string;
-    role: UserRole;
-    createdAt: Date;
-  };
-  stats?: {
-    totalMissions: number;
-    completedMissions: number;
-    activeMissions: number;
-    avgScore: number;
-    completionRate: number;
-  };
-}
+// Commented out unused interface
+// interface PlayerWithStats extends PlayerProfile {
+//   user: {
+//     id: string;
+//     email: string;
+//     role: UserRole;
+//     createdAt: Date;
+//   };
+//   stats?: {
+//     totalMissions: number;
+//     completedMissions: number;
+//     activeMissions: number;
+//     avgScore: number;
+//     completionRate: number;
+//   };
+// }
 
 export class PlayerService {
   /**
@@ -87,7 +88,7 @@ export class PlayerService {
       const completedMissions = profile.missionResults.filter((r) => r.isCompleted).length;
       const activeMissions = totalMissions - completedMissions;
       const avgScore = totalMissions > 0
-        ? profile.missionResults.reduce((sum, r) => sum + r.score, 0) / totalMissions
+        ? profile.missionResults.reduce((sum: number, r) => sum + r.score, 0) / totalMissions
         : 0;
       const completionRate = totalMissions > 0 ? (completedMissions / totalMissions) * 100 : 0;
 
@@ -171,7 +172,6 @@ export class PlayerService {
       missionsCompleted: profile.missionsCompleted,
       totalTimeSpent: profile.totalTimeSpent,
       createdAt: profile.user.createdAt.toISOString(),
-      updatedAt: profile.user.updatedAt.toISOString(),
       user: {
         id: profile.user.id,
         email: profile.user.email,
@@ -204,7 +204,7 @@ export class PlayerService {
     const completedMissions = results.filter((r) => r.isCompleted).length;
     const activeMissions = totalMissions - completedMissions;
     const avgScore = totalMissions > 0
-      ? results.reduce((sum, r) => sum + r.score, 0) / totalMissions
+      ? results.reduce((sum: number, r) => sum + r.score, 0) / totalMissions
       : 0;
     const completionRate = totalMissions > 0 ? (completedMissions / totalMissions) * 100 : 0;
 

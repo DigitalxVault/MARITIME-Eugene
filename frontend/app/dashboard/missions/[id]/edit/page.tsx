@@ -59,7 +59,7 @@ export default function EditMissionPage() {
   }
 
   // Check ownership (TRAINER can only edit own missions, ADMIN can edit any)
-  const isOwner = mission.createdById === user.id;
+  const isOwner = mission.createdBy === user.id;
   const canEdit = user.role === UserRole.ADMIN || (user.role === UserRole.TRAINER && isOwner);
 
   if (!canEdit) {

@@ -121,11 +121,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <>
                     <div className="mb-2 flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500/20 text-sm font-semibold text-primary-500">
-                        {user.username.substring(0, 2).toUpperCase()}
+                        {(user.username || user.email).substring(0, 2).toUpperCase()}
                       </div>
                       <div className="flex-1 overflow-hidden">
                         <p className="truncate text-sm font-medium text-dark-200">
-                          {user.username}
+                          {user.username || user.email}
                         </p>
                         <p className="truncate text-xs text-dark-500">{user.role}</p>
                       </div>
@@ -160,7 +160,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </h2>
             <div className="flex items-center gap-4">
               <div className="text-sm text-dark-400">
-                Welcome, <span className="font-medium text-dark-200">{user?.username}</span>
+                Welcome, <span className="font-medium text-dark-200">{user?.username || user?.email}</span>
               </div>
             </div>
           </header>

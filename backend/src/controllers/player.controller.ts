@@ -16,7 +16,7 @@ export class PlayerController {
    * @route GET /api/players
    * @access ADMIN, TRAINER
    */
-  async getPlayers(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayers(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate query parameters
       const validatedQuery = playerQuerySchema.parse(req.query);
@@ -38,33 +38,35 @@ export class PlayerController {
    * @route GET /api/players/:id
    * @access ADMIN, TRAINER, LEARNER (own profile)
    */
-  async getPlayerById(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayerById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate player ID
       const { id } = playerIdSchema.parse(req.params);
 
       // Check if user can view this player
       const canView = await playerService.canUserViewPlayer(
-        req.user!.id,
+        req.user!.userId,
         id,
         req.user!.role as UserRole
       );
 
       if (!canView) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: 'You do not have permission to view this player',
         });
+        return;
       }
 
       // Get player
       const player = await playerService.getPlayerById(id);
 
       if (!player) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Player not found',
         });
+        return;
       }
 
       res.status(200).json({
@@ -81,16 +83,17 @@ export class PlayerController {
    * @route GET /api/players/me
    * @access Authenticated users
    */
-  async getMyProfile(req: AuthRequest, res: Response, next: NextFunction) {
+  async getMyProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Get player profile by user ID
-      const player = await playerService.getPlayerByUserId(req.user!.id);
+      const player = await playerService.getPlayerByUserId(req.user!.userId);
 
       if (!player) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Player profile not found',
         });
+        return;
       }
 
       res.status(200).json({
@@ -107,7 +110,7 @@ export class PlayerController {
    * @route PUT /api/players/:id
    * @access ADMIN, LEARNER (own profile)
    */
-  async updatePlayerProfile(req: AuthRequest, res: Response, next: NextFunction) {
+  async updatePlayerProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate player ID
       const { id } = playerIdSchema.parse(req.params);
@@ -119,11 +122,12 @@ export class PlayerController {
       if (req.user!.role === UserRole.LEARNER) {
         // LEARNER can only update their own profile
         const player = await playerService.getPlayerById(id);
-        if (!player || player.userId !== req.user!.id) {
-          return res.status(403).json({
+        if (!player || player.userId !== req.user!.userId) {
+          res.status(403).json({
             success: false,
             message: 'You can only update your own profile',
           });
+          return;
         }
       }
 
@@ -145,7 +149,7 @@ export class PlayerController {
    * @route GET /api/players/:id/progress
    * @access ADMIN, TRAINER, LEARNER (own progress)
    */
-  async getPlayerProgress(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayerProgress(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate player ID
       const { id } = playerIdSchema.parse(req.params);
@@ -155,16 +159,17 @@ export class PlayerController {
 
       // Check if user can view this player's progress
       const canView = await playerService.canUserViewPlayer(
-        req.user!.id,
+        req.user!.userId,
         id,
         req.user!.role as UserRole
       );
 
       if (!canView) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: 'You do not have permission to view this player\'s progress',
         });
+        return;
       }
 
       // Get progress
@@ -184,7 +189,7 @@ export class PlayerController {
    * @route POST /api/players/:id/progress
    * @access ADMIN, TRAINER
    */
-  async recordMissionResult(req: AuthRequest, res: Response, next: NextFunction) {
+  async recordMissionResult(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate player ID
       const { id } = playerIdSchema.parse(req.params);
@@ -210,33 +215,35 @@ export class PlayerController {
    * @route GET /api/players/:id/stats
    * @access ADMIN, TRAINER, LEARNER (own stats)
    */
-  async getPlayerStats(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayerStats(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate player ID
       const { id } = playerIdSchema.parse(req.params);
 
       // Check if user can view this player's stats
       const canView = await playerService.canUserViewPlayer(
-        req.user!.id,
+        req.user!.userId,
         id,
         req.user!.role as UserRole
       );
 
       if (!canView) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: 'You do not have permission to view this player\'s statistics',
         });
+        return;
       }
 
       // Get stats
       const stats = await playerService.getPlayerStats(id);
 
       if (!stats) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Player not found',
         });
+        return;
       }
 
       res.status(200).json({

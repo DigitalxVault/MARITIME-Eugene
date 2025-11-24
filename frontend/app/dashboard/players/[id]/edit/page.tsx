@@ -38,12 +38,12 @@ export default function EditPlayerPage() {
   } = useForm<PlayerFormValues>({
     defaultValues: {
       rank: player?.rank || 'Cadet',
-      role: player?.user?.role || UserRole.LEARNER,
+      role: player?.user?.role || UserRole.PLAYER,
     },
     values: player
       ? {
           rank: player.rank || 'Cadet',
-          role: player.user?.role || UserRole.LEARNER,
+          role: player.user?.role || UserRole.PLAYER,
         }
       : undefined,
   });
@@ -178,7 +178,7 @@ export default function EditPlayerPage() {
                 {...register('role')}
                 className="w-full rounded-lg border border-dark-700 bg-dark-800 px-3 py-2 text-dark-50 focus:border-primary-500 focus:outline-none"
               >
-                <option value={UserRole.LEARNER}>Learner</option>
+                <option value={UserRole.PLAYER}>Player</option>
                 <option value={UserRole.TRAINER}>Trainer</option>
                 <option value={UserRole.ADMIN}>Admin</option>
               </select>

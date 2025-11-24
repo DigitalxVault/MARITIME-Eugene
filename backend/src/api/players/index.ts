@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import playerController from '../../controllers/player.controller';
 import { authenticate } from '../../middleware/auth.middleware';
-import { isAdmin, isAdminOrTrainer } from '../../middleware/rbac.middleware';
+import { isAdminOrTrainer } from '../../middleware/rbac.middleware';
 import { validateRequest } from '../../middleware/validation.middleware';
 import {
   playerQuerySchema,

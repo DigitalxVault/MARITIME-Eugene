@@ -11,11 +11,11 @@ export class AnalyticsController {
    * @route GET /api/analytics/overview
    * @access Public (filtered by role)
    */
-  async getDashboardOverview(req: AuthRequest, res: Response, next: NextFunction) {
+  async getDashboardOverview(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Get user role and ID from authenticated user (if exists)
       const userRole = req.user?.role as UserRole | undefined;
-      const userId = req.user?.id;
+      const userId = req.user?.userId;
 
       // Get overview based on role
       const overview = await analyticsService.getDashboardOverview(userRole, userId);
@@ -34,7 +34,7 @@ export class AnalyticsController {
    * @route GET /api/analytics/missions/:id
    * @access ADMIN, TRAINER
    */
-  async getMissionAnalytics(req: AuthRequest, res: Response, next: NextFunction) {
+  async getMissionAnalytics(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate mission ID
       const { id } = missionIdSchema.parse(req.params);
@@ -43,10 +43,11 @@ export class AnalyticsController {
       const analytics = await analyticsService.getMissionAnalytics(id);
 
       if (!analytics) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Mission not found',
         });
+        return;
       }
 
       res.status(200).json({
@@ -63,7 +64,7 @@ export class AnalyticsController {
    * @route GET /api/analytics/players/:id
    * @access ADMIN, TRAINER, LEARNER (own analytics)
    */
-  async getPlayerAnalytics(req: AuthRequest, res: Response, next: NextFunction) {
+  async getPlayerAnalytics(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       // Validate player ID
       const { id } = playerIdSchema.parse(req.params);
@@ -73,10 +74,11 @@ export class AnalyticsController {
         // LEARNER can only view their own analytics
         const analytics = await analyticsService.getPlayerAnalytics(id);
         if (!analytics || analytics.player.email !== req.user!.email) {
-          return res.status(403).json({
+          res.status(403).json({
             success: false,
             message: 'You can only view your own analytics',
           });
+          return;
         }
       }
 
@@ -84,10 +86,11 @@ export class AnalyticsController {
       const analytics = await analyticsService.getPlayerAnalytics(id);
 
       if (!analytics) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Player not found',
         });
+        return;
       }
 
       res.status(200).json({

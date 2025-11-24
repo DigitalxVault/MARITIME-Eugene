@@ -163,7 +163,7 @@ export class PlayerService {
     const where: Prisma.MissionResultWhereInput = {
       playerId,
       ...(missionId && { missionId }),
-      ...(completed !== undefined && { completed }),
+      ...(completed !== undefined && { isCompleted: completed }),
     };
 
     // Get mission results with pagination
@@ -182,8 +182,6 @@ export class PlayerService {
               title: true,
               type: true,
               difficulty: true,
-              totalScore: true,
-              passingScore: true,
             },
           },
         },
@@ -213,7 +211,7 @@ export class PlayerService {
    * Record a mission result
    */
   async recordMissionResult(playerId: string, data: RecordMissionResultInput): Promise<MissionResult> {
-    const { missionId, score, timeSpent, completed, details } = data;
+    const { missionId, score, timeSpent, completed } = data;
 
     // Create mission result
     const result = await prisma.missionResult.create({
@@ -222,9 +220,7 @@ export class PlayerService {
         missionId,
         score,
         timeSpent,
-        completed,
-        details,
-        completedAt: completed ? new Date() : null,
+        isCompleted: completed,
       },
       include: {
         mission: true,
@@ -247,23 +243,15 @@ export class PlayerService {
     // Get all mission results for the player
     const results = await prisma.missionResult.findMany({
       where: { playerId },
-      include: {
-        mission: {
-          select: {
-            totalScore: true,
-          },
-        },
-      },
     });
 
     // Calculate stats
     const totalMissions = results.length;
-    const completedMissions = results.filter(r => r.completed).length;
-    const totalScore = results.reduce((sum, r) => sum + r.score, 0);
-    const maxPossibleScore = results.reduce((sum, r) => sum + r.mission.totalScore, 0);
+    const completedMissions = results.filter((r) => r.isCompleted).length;
+    const totalScore = results.reduce((sum: number, r) => sum + r.score, 0);
 
     const winRate = totalMissions > 0 ? (completedMissions / totalMissions) * 100 : 0;
-    const averageScore = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+    const averageScore = totalMissions > 0 ? totalScore / totalMissions : 0;
 
     // Update player profile
     await prisma.playerProfile.update({
@@ -302,9 +290,9 @@ export class PlayerService {
       },
     });
 
-    // Get mission statistics by difficulty
+    // Get mission statistics by completion status
     const difficultyStats = await prisma.missionResult.groupBy({
-      by: ['completed'],
+      by: ['isCompleted'],
       where: { playerId },
       _count: {
         id: true,
@@ -317,8 +305,8 @@ export class PlayerService {
         DATE_TRUNC('day', "completedAt") as date,
         COUNT(*) as missions,
         AVG(score) as avgScore,
-        SUM(CASE WHEN completed THEN 1 ELSE 0 END) as completed
-      FROM "MissionResult"
+        SUM(CASE WHEN "isCompleted" THEN 1 ELSE 0 END) as completed
+      FROM "mission_results"
       WHERE "playerId" = ${playerId}
         AND "completedAt" IS NOT NULL
         AND "completedAt" >= NOW() - INTERVAL '30 days'

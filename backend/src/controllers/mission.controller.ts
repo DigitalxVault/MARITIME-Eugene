@@ -52,7 +52,7 @@ export class MissionController {
       const validatedQuery = missionQuerySchema.parse(req.query);
 
       // Get user role from authenticated user (if exists)
-      const userRole = req.user?.role;
+      const userRole = req.user?.role as UserRole | undefined;
 
       // Get missions based on role
       const result = await missionService.getMissions(validatedQuery, userRole);
@@ -77,7 +77,7 @@ export class MissionController {
       const { id } = missionIdSchema.parse(req.params);
 
       // Get user role from authenticated user (if exists)
-      const userRole = req.user?.role;
+      const userRole = req.user?.role as UserRole | undefined;
 
       // Get mission
       const mission = await missionService.getMissionById(id, userRole);
@@ -156,6 +156,32 @@ export class MissionController {
       res.status(200).json({
         success: true,
         message: 'Mission deleted successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update mission status
+   * @route PATCH /api/missions/:id/status
+   * @access ADMIN
+   */
+  async updateMissionStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Validate mission ID
+      const { id } = missionIdSchema.parse(req.params);
+
+      // Validate status from body
+      const { status } = req.body;
+
+      // Update mission status
+      const mission = await missionService.updateMissionStatus(id, status);
+
+      res.status(200).json({
+        success: true,
+        message: 'Mission status updated successfully',
+        data: mission,
       });
     } catch (error) {
       next(error);

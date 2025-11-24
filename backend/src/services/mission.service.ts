@@ -11,7 +11,7 @@ export class MissionService {
     return await prisma.mission.create({
       data: {
         ...data,
-        creatorId,
+        createdBy: creatorId,
       },
     });
   }
@@ -62,20 +62,9 @@ export class MissionService {
           [sortBy]: sortOrder,
         },
         include: {
-          creator: {
-            select: {
-              id: true,
-              email: true,
-              profile: {
-                select: {
-                  username: true,
-                },
-              },
-            },
-          },
           _count: {
             select: {
-              missionResults: true,
+              results: true,
             },
           },
         },
@@ -118,18 +107,7 @@ export class MissionService {
     return await prisma.mission.findFirst({
       where,
       include: {
-        creator: {
-          select: {
-            id: true,
-            email: true,
-            profile: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
-        missionResults: {
+        results: {
           take: 10,
           orderBy: {
             score: 'desc',
@@ -146,7 +124,7 @@ export class MissionService {
         },
         _count: {
           select: {
-            missionResults: true,
+            results: true,
           },
         },
       },
@@ -174,6 +152,16 @@ export class MissionService {
   }
 
   /**
+   * Update mission status only
+   */
+  async updateMissionStatus(id: string, status: string): Promise<Mission> {
+    return await prisma.mission.update({
+      where: { id, deletedAt: null },
+      data: { status: status as any },
+    });
+  }
+
+  /**
    * Get mission statistics
    */
   async getMissionStats(id: string) {
@@ -182,7 +170,7 @@ export class MissionService {
       include: {
         _count: {
           select: {
-            missionResults: true,
+            results: true,
           },
         },
       },
@@ -212,7 +200,7 @@ export class MissionService {
     const successRate = await prisma.missionResult.count({
       where: {
         missionId: id,
-        completed: true,
+        isCompleted: true,
       },
     });
 
@@ -244,9 +232,9 @@ export class MissionService {
     if (userRole === UserRole.TRAINER) {
       const mission = await prisma.mission.findUnique({
         where: { id: missionId, deletedAt: null },
-        select: { creatorId: true },
+        select: { createdBy: true },
       });
-      return mission?.creatorId === userId;
+      return mission?.createdBy === userId;
     }
 
     // LEARNER cannot modify missions

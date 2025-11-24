@@ -106,89 +106,31 @@ export default function MissionDetailPage() {
         {/* Objectives */}
         <div className="lg:col-span-2">
           <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
-            <h2 className="mb-4 text-xl font-semibold text-dark-50">Mission Objectives</h2>
-            {mission.objectives && mission.objectives.length > 0 ? (
-              <div className="space-y-3">
-                {mission.objectives
-                  .sort((a, b) => a.order - b.order)
-                  .map((objective, index) => (
-                    <div
-                      key={objective.id}
-                      className="rounded-lg border border-dark-800 bg-dark-800/30 p-4"
-                    >
-                      <div className="mb-2 flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-500/20 text-xs font-semibold text-primary-500">
-                            {index + 1}
-                          </div>
-                          <h3 className="font-semibold text-dark-50">{objective.title}</h3>
-                          {objective.isRequired && (
-                            <span className="rounded-full bg-error/10 px-2 py-0.5 text-xs font-medium text-error">
-                              Required
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm font-medium text-primary-500">
-                          {objective.points} pts
-                        </div>
-                      </div>
-                      <p className="text-sm text-dark-400">{objective.description}</p>
+            <h2 className="mb-4 text-xl font-semibold text-dark-50">Learning Objectives</h2>
+            {mission.learningObjectives && mission.learningObjectives.length > 0 ? (
+              <ul className="space-y-2">
+                {mission.learningObjectives.map((objective, index) => (
+                  <li key={index} className="flex items-start gap-3 text-dark-300">
+                    <div className="mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary-500/20 text-xs font-semibold text-primary-500">
+                      {index + 1}
                     </div>
-                  ))}
-              </div>
+                    <span>{objective}</span>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <p className="text-dark-400">No objectives defined.</p>
+              <p className="text-dark-400">No learning objectives defined.</p>
             )}
           </div>
         </div>
 
-        {/* Scenarios & Stats */}
+        {/* Statistics */}
         <div className="space-y-6">
-          {/* Scenarios */}
-          <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
-            <h2 className="mb-4 text-lg font-semibold text-dark-50">Scenarios</h2>
-            {mission.scenarios && mission.scenarios.length > 0 ? (
-              <div className="space-y-2">
-                {mission.scenarios
-                  .sort((a, b) => a.order - b.order)
-                  .map((scenario) => (
-                    <div
-                      key={scenario.id}
-                      className="rounded-lg border border-dark-700 bg-dark-800/30 p-3"
-                    >
-                      <p className="text-sm font-medium text-dark-200">{scenario.name}</p>
-                      <p className="mt-1 text-xs text-dark-500">{scenario.description}</p>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <p className="text-sm text-dark-400">No scenarios configured.</p>
-            )}
-          </div>
-
-          {/* Statistics */}
           {mission._count?.results !== undefined && (
             <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
               <h2 className="mb-4 text-lg font-semibold text-dark-50">Statistics</h2>
               <div className="space-y-3">
                 <StatRow label="Total Attempts" value={mission._count.results.toString()} />
-              </div>
-            </div>
-          )}
-
-          {/* Tags */}
-          {mission.tags && mission.tags.length > 0 && (
-            <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
-              <h2 className="mb-4 text-lg font-semibold text-dark-50">Tags</h2>
-              <div className="flex flex-wrap gap-2">
-                {mission.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-primary-500/10 px-3 py-1 text-xs font-medium text-primary-500"
-                  >
-                    {tag}
-                  </span>
-                ))}
               </div>
             </div>
           )}

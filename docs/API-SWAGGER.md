@@ -214,6 +214,7 @@ Soft delete a mission (ADMIN only).
 **Response (200 OK):**
 ```json
 {
+  "success": true,
   "message": "Mission deleted successfully"
 }
 ```
@@ -233,9 +234,27 @@ Update mission status (ADMIN only).
 **Response (200 OK):**
 ```json
 {
-  "id": "mission_001",
-  "status": "ARCHIVED",
-  "updatedAt": "2025-01-26T00:00:00Z"
+  "success": true,
+  "message": "Mission status updated successfully",
+  "data": {
+    "id": "mission_001",
+    "title": "Singapore Strait Patrol",
+    "status": "ARCHIVED",
+    "updatedAt": "2025-01-26T00:00:00Z"
+  }
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "error": "Validation error",
+  "details": [
+    {
+      "field": "status",
+      "message": "Status must be DRAFT, ACTIVE, or ARCHIVED"
+    }
+  ]
 }
 ```
 

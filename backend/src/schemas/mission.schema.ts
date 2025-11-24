@@ -38,8 +38,17 @@ export const missionIdSchema = z.object({
   id: z.string().cuid('Invalid mission ID format'),
 });
 
+// Schema for updating mission status only
+export const updateMissionStatusSchema = z.object({
+  status: z.nativeEnum(MissionStatus, {
+    required_error: 'Status is required',
+    invalid_type_error: 'Status must be DRAFT, ACTIVE, or ARCHIVED',
+  }),
+});
+
 // Type exports for use in controllers and services
 export type CreateMissionInput = z.infer<typeof createMissionSchema>;
 export type UpdateMissionInput = z.infer<typeof updateMissionSchema>;
 export type MissionQueryInput = z.infer<typeof missionQuerySchema>;
 export type MissionIdParam = z.infer<typeof missionIdSchema>;
+export type UpdateMissionStatusInput = z.infer<typeof updateMissionStatusSchema>;

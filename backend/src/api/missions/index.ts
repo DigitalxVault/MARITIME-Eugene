@@ -8,6 +8,7 @@ import {
   updateMissionSchema,
   missionQuerySchema,
   missionIdSchema,
+  updateMissionStatusSchema,
 } from '../../schemas/mission.schema';
 
 const router = Router();
@@ -84,6 +85,19 @@ router.delete(
   isAdmin,
   validateRequest({ params: missionIdSchema }),
   missionController.deleteMission
+);
+
+/**
+ * @route   PATCH /api/missions/:id/status
+ * @desc    Update mission status only
+ * @access  ADMIN
+ */
+router.patch(
+  '/:id/status',
+  authenticate,
+  isAdmin,
+  validateRequest({ params: missionIdSchema, body: updateMissionStatusSchema }),
+  missionController.updateMissionStatus
 );
 
 export default router;

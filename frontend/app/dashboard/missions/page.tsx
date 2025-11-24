@@ -16,6 +16,7 @@ import {
   MissionFilters,
   MissionStatus,
   MissionDifficulty,
+  MissionType,
   UserRole,
 } from '@/types';
 import { formatDate, getDifficultyColor, getStatusColor } from '@/lib/utils';
@@ -78,7 +79,7 @@ export default function MissionsPage() {
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  status: e.target.value || undefined,
+                  status: (e.target.value || undefined) as MissionStatus | undefined,
                   page: 1,
                 })
               }
@@ -99,7 +100,7 @@ export default function MissionsPage() {
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  difficulty: e.target.value || undefined,
+                  difficulty: (e.target.value || undefined) as MissionDifficulty | undefined,
                   page: 1,
                 })
               }
@@ -119,7 +120,7 @@ export default function MissionsPage() {
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  type: e.target.value || undefined,
+                  type: (e.target.value || undefined) as MissionType | undefined,
                   page: 1,
                 })
               }

@@ -13,16 +13,14 @@ export class AnalyticsService {
     const cacheKey = `analytics:dashboard:${userRole}:${userId || 'public'}`;
 
     // Try to get from cache
-    const cached = await cacheService.get(cacheKey);
+    const cached = await cacheService.get<any>(cacheKey);
     if (cached) {
-      return JSON.parse(cached);
+      return cached;
     }
 
     // Build where clause based on role
-    const missionWhere = userRole === UserRole.LEARNER ? { status: 'ACTIVE' } : {};
-    const playerWhere = userRole === UserRole.TRAINER && userId
-      ? { user: { creatorId: userId } } // Trainer's learners
-      : {};
+    const missionWhere = userRole === UserRole.LEARNER ? { status: 'ACTIVE' as const } : {};
+    const playerWhere = {}; // Removed creatorId - field doesn't exist in User model
 
     // Get all metrics
     const [
@@ -43,7 +41,7 @@ export class AnalyticsService {
 
       // Active missions
       prisma.mission.count({
-        where: { deletedAt: null, status: 'ACTIVE', ...missionWhere },
+        where: { deletedAt: null, status: 'ACTIVE' as const, ...missionWhere },
       }),
 
       // Total players
@@ -145,19 +143,19 @@ export class AnalyticsService {
         topPerformers,
       },
       distributions: {
-        missionsByDifficulty: missionsByDifficulty.map(item => ({
+        missionsByDifficulty: missionsByDifficulty.map((item) => ({
           difficulty: item.difficulty,
-          count: item._count.id,
+          count: item._count || 0,
         })),
-        missionsByType: missionsByType.map(item => ({
+        missionsByType: missionsByType.map((item) => ({
           type: item.type,
-          count: item._count.id,
+          count: item._count || 0,
         })),
       },
     };
 
     // Cache the result
-    await cacheService.set(cacheKey, JSON.stringify(overview), this.CACHE_TTL);
+    await cacheService.set(cacheKey, overview, this.CACHE_TTL);
 
     return overview;
   }
@@ -169,9 +167,9 @@ export class AnalyticsService {
     const cacheKey = `analytics:mission:${missionId}`;
 
     // Try to get from cache
-    const cached = await cacheService.get(cacheKey);
+    const cached = await cacheService.get<any>(cacheKey);
     if (cached) {
-      return JSON.parse(cached);
+      return cached;
     }
 
     const mission = await prisma.mission.findUnique({
@@ -303,7 +301,7 @@ export class AnalyticsService {
     };
 
     // Cache the result
-    await cacheService.set(cacheKey, JSON.stringify(analytics), this.CACHE_TTL);
+    await cacheService.set(cacheKey, analytics, this.CACHE_TTL);
 
     return analytics;
   }
@@ -315,9 +313,9 @@ export class AnalyticsService {
     const cacheKey = `analytics:player:${playerId}`;
 
     // Try to get from cache
-    const cached = await cacheService.get(cacheKey);
+    const cached = await cacheService.get<any>(cacheKey);
     if (cached) {
-      return JSON.parse(cached);
+      return cached;
     }
 
     const player = await prisma.playerProfile.findUnique({
@@ -356,7 +354,6 @@ export class AnalyticsService {
               title: true,
               difficulty: true,
               type: true,
-              totalScore: true,
             },
           },
         },
@@ -460,7 +457,7 @@ export class AnalyticsService {
     };
 
     // Cache the result
-    await cacheService.set(cacheKey, JSON.stringify(analytics), this.CACHE_TTL);
+    await cacheService.set(cacheKey, analytics, this.CACHE_TTL);
 
     return analytics;
   }
@@ -472,9 +469,9 @@ export class AnalyticsService {
     const cacheKey = `analytics:trending:${limit}`;
 
     // Try to get from cache
-    const cached = await cacheService.get(cacheKey);
+    const cached = await cacheService.get<any>(cacheKey);
     if (cached) {
-      return JSON.parse(cached);
+      return cached;
     }
 
     // Get missions with most attempts in last 7 days
