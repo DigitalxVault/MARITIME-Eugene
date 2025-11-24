@@ -185,8 +185,19 @@ export const api = {
   get: async <T>(url: string, params?: Record<string, any>): Promise<T> => {
     const response = await apiClient.get<any>(url, { params });
     console.log(`[API GET ${url}] Response:`, response.data);
+
+    // If response has metadata/meta/pagination (paginated response), return data + meta structure
+    if (response.data.metadata || response.data.meta || response.data.pagination) {
+      const result = {
+        data: response.data.data,
+        meta: response.data.metadata || response.data.meta || response.data.pagination
+      };
+      console.log(`[API GET ${url}] Returning paginated:`, result);
+      return result as T;
+    }
+
+    // Otherwise return just the data
     console.log(`[API GET ${url}] Returning:`, response.data.data || response.data);
-    // Handle {success, data} format from backend
     return response.data.data || response.data;
   },
 

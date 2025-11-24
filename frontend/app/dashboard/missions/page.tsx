@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useAuth } from '@/components/auth/AuthProvider';
 import {
@@ -26,6 +26,7 @@ export default function MissionsPage() {
     page: 1,
     limit: 10,
   });
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Fetch missions
   const { data, isLoading, error } = useQuery<PaginatedResponse<Mission>>({
@@ -46,18 +47,30 @@ export default function MissionsPage() {
           </p>
         </div>
         {canCreateMission && (
-          <Link
-            href="/dashboard/missions/new"
-            className="rounded-lg bg-primary-500 px-4 py-2 font-semibold text-white shadow-sci-fi transition-all hover:bg-primary-600"
-          >
-            Create Mission
-          </Link>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsEditMode(!isEditMode)}
+              className={`rounded-lg border px-4 py-2 font-semibold transition-all ${
+                isEditMode
+                  ? 'border-error bg-error text-white shadow-sci-fi hover:bg-error/90'
+                  : 'border-dark-700 bg-dark-800 text-dark-200 hover:border-primary-500/50 hover:bg-dark-700'
+              }`}
+            >
+              {isEditMode ? 'Cancel Edit' : 'Edit Missions'}
+            </button>
+            <Link
+              href="/dashboard/missions/new"
+              className="rounded-lg bg-primary-500 px-4 py-2 font-semibold text-white shadow-sci-fi transition-all hover:bg-primary-600"
+            >
+              Create Mission
+            </Link>
+          </div>
         )}
       </div>
 
       {/* Filters */}
       <div className="mb-6 rounded-lg border border-dark-800 bg-dark-900/50 p-4">
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-dark-300">Status</label>
             <select
@@ -65,17 +78,17 @@ export default function MissionsPage() {
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  status: e.target.value as MissionStatus | undefined,
+                  status: e.target.value || undefined,
                   page: 1,
                 })
               }
               className="w-full rounded-lg border border-dark-700 bg-dark-800 px-3 py-2 text-dark-50 focus:border-primary-500 focus:outline-none"
             >
               <option value="">All Statuses</option>
-              <option value={MissionStatus.DRAFT}>Draft</option>
-              <option value={MissionStatus.ACTIVE}>Active</option>
-              <option value={MissionStatus.COMPLETED}>Completed</option>
-              <option value={MissionStatus.ARCHIVED}>Archived</option>
+              <option value="DRAFT">Draft</option>
+              <option value="ACTIVE">Active</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="ARCHIVED">Archived</option>
             </select>
           </div>
 
@@ -86,35 +99,36 @@ export default function MissionsPage() {
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  difficulty: e.target.value as MissionDifficulty | undefined,
+                  difficulty: e.target.value || undefined,
                   page: 1,
                 })
               }
               className="w-full rounded-lg border border-dark-700 bg-dark-800 px-3 py-2 text-dark-50 focus:border-primary-500 focus:outline-none"
             >
               <option value="">All Difficulties</option>
-              <option value={MissionDifficulty.BEGINNER}>Beginner</option>
-              <option value={MissionDifficulty.INTERMEDIATE}>Intermediate</option>
-              <option value={MissionDifficulty.ADVANCED}>Advanced</option>
-              <option value={MissionDifficulty.EXPERT}>Expert</option>
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
             </select>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-dark-300">Search</label>
-            <input
-              type="text"
-              placeholder="Search missions..."
-              value={filters.search || ''}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-dark-300">Type</label>
+            <select
+              value={filters.type || ''}
               onChange={(e) =>
                 setFilters({
                   ...filters,
-                  search: e.target.value || undefined,
+                  type: e.target.value || undefined,
                   page: 1,
                 })
               }
-              className="w-full rounded-lg border border-dark-700 bg-dark-800 px-3 py-2 text-dark-50 placeholder-dark-500 focus:border-primary-500 focus:outline-none"
-            />
+              className="w-full rounded-lg border border-dark-700 bg-dark-800 px-3 py-2 text-dark-50 focus:border-primary-500 focus:outline-none"
+            >
+              <option value="">All Types</option>
+              <option value="PVE">PVE (Campaign)</option>
+              <option value="PVP">PVP (Multiplayer)</option>
+            </select>
           </div>
         </div>
       </div>
@@ -128,7 +142,7 @@ export default function MissionsPage() {
         <div className="rounded-lg border border-error/20 bg-error/10 p-6 text-center text-error">
           Failed to load missions. Please try again.
         </div>
-      ) : !data?.data.length ? (
+      ) : !data?.data?.length ? (
         <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-12 text-center">
           <p className="text-dark-400">No missions found.</p>
         </div>
@@ -136,12 +150,12 @@ export default function MissionsPage() {
         <>
           <div className="space-y-4">
             {data.data.map((mission) => (
-              <MissionCard key={mission.id} mission={mission} />
+              <MissionCard key={mission.id} mission={mission} isEditMode={isEditMode} />
             ))}
           </div>
 
           {/* Pagination */}
-          {data.meta.totalPages > 1 && (
+          {data.meta && data.meta.totalPages > 1 && (
             <div className="mt-6 flex items-center justify-center gap-2">
               <button
                 onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
@@ -169,47 +183,123 @@ export default function MissionsPage() {
 }
 
 // Mission Card Component
-function MissionCard({ mission }: { mission: Mission }) {
-  return (
-    <Link
-      href={`/dashboard/missions/${mission.id}`}
-      className="block rounded-lg border border-dark-800 bg-dark-900/50 p-6 transition-all hover:border-primary-500/50 hover:shadow-sci-fi"
-    >
-      <div className="mb-3 flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="mb-1 text-lg font-semibold text-dark-50">{mission.title}</h3>
-          <p className="text-sm text-dark-400 line-clamp-2">{mission.description}</p>
-        </div>
-        <div className="ml-4 flex gap-2">
-          <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(mission.status)}`}>
-            {mission.status}
-          </span>
-          <span className={`rounded-full px-3 py-1 text-xs font-medium ${getDifficultyColor(mission.difficulty)}`}>
-            {mission.difficulty}
-          </span>
-        </div>
-      </div>
+function MissionCard({ mission, isEditMode }: { mission: Mission; isEditMode: boolean }) {
+  const queryClient = useQueryClient();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-      <div className="flex items-center gap-6 text-sm text-dark-400">
-        <div className="flex items-center gap-2">
-          <ClockIcon className="h-4 w-4" />
-          <span>{mission.estimatedDuration} min</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <TargetIcon className="h-4 w-4" />
-          <span>{mission.passingScore}% to pass</span>
-        </div>
-        {mission._count && (
-          <div className="flex items-center gap-2">
-            <UsersIcon className="h-4 w-4" />
-            <span>{mission._count.attempts} attempts</span>
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/missions/${mission.id}?hard=true`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['missions'] });
+      setShowDeleteConfirm(false);
+    },
+  });
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await deleteMutation.mutateAsync();
+  };
+
+  const cancelDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowDeleteConfirm(false);
+  };
+
+  return (
+    <div className="relative">
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={cancelDelete}
+        >
+          <div
+            className="rounded-lg border border-dark-700 bg-dark-900 p-6 shadow-sci-fi"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-4 text-lg font-semibold text-dark-50">Delete Mission</h3>
+            <p className="mb-6 text-sm text-dark-400">
+              Are you sure you want to delete "{mission.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelDelete}
+                disabled={deleteMutation.isPending}
+                className="rounded-lg border border-dark-700 bg-dark-800 px-4 py-2 text-sm font-medium text-dark-200 transition-colors hover:bg-dark-700 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+                className="rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-error/90 disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
-        )}
-        <div className="ml-auto text-xs text-dark-500">
-          Created {formatDate(mission.createdAt, 'relative')}
         </div>
+      )}
+
+      {/* Mission Card */}
+      <div className="flex items-center gap-3">
+        {/* Delete Stop Sign Icon (only visible in edit mode) */}
+        {isEditMode && (
+          <button
+            onClick={handleDeleteClick}
+            className="flex-shrink-0 rounded-lg p-2 text-error transition-all hover:bg-error/10"
+            title="Delete mission"
+          >
+            <StopSignIcon className="h-8 w-8" />
+          </button>
+        )}
+
+        {/* Mission Card Content */}
+        <Link
+          href={`/dashboard/missions/${mission.id}/edit`}
+          className="block flex-1 rounded-lg border border-dark-800 bg-dark-900/50 p-6 transition-all hover:border-primary-500/50 hover:shadow-sci-fi"
+        >
+          <div className="mb-3 flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="mb-1 text-lg font-semibold text-dark-50">{mission.title}</h3>
+              <p className="text-sm text-dark-400 line-clamp-2">{mission.description}</p>
+            </div>
+            <div className="ml-4 flex gap-2">
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(mission.status)}`}>
+                {mission.status}
+              </span>
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ${getDifficultyColor(mission.difficulty)}`}>
+                {mission.difficulty}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6 text-sm text-dark-400">
+            <div className="flex items-center gap-2">
+              <ClockIcon className="h-4 w-4" />
+              <span>{mission.duration} min</span>
+            </div>
+            {mission._count && (
+              <div className="flex items-center gap-2">
+                <UsersIcon className="h-4 w-4" />
+                <span>{mission._count.results} attempts</span>
+              </div>
+            )}
+            <div className="ml-auto text-xs text-dark-500">
+              Created {formatDate(mission.createdAt, 'relative')}
+            </div>
+          </div>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -249,6 +339,14 @@ function UsersIcon({ className }: { className?: string }) {
         strokeWidth={2}
         d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
       />
+    </svg>
+  );
+}
+
+function StopSignIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 2L3 7v10l9 5 9-5V7l-9-5zm0 2.18l7 3.89v7.86l-7 3.89-7-3.89V8.07l7-3.89zM11 11h2v6h-2v-6zm0-4h2v2h-2V7z" />
     </svg>
   );
 }

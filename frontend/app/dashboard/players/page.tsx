@@ -107,7 +107,7 @@ export default function PlayersPage() {
           <div className="rounded-lg border border-error/20 bg-error/10 p-6 text-center text-error">
             Failed to load players. Please try again.
           </div>
-        ) : !data?.data.length ? (
+        ) : !data?.data?.length ? (
           <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-12 text-center">
             <p className="text-dark-400">No players found.</p>
           </div>
@@ -121,7 +121,7 @@ export default function PlayersPage() {
             </div>
 
             {/* Pagination */}
-            {data.meta.totalPages > 1 && (
+            {data.meta && data.meta.totalPages > 1 && (
               <div className="mt-6 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}

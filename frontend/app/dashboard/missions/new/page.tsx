@@ -2,7 +2,7 @@
 
 /**
  * Create New Mission Page
- * Form for creating a new mission (ADMIN/TRAINER only)
+ * ADMIN-only page for creating missions
  */
 
 import React, { useEffect } from 'react';
@@ -11,19 +11,19 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { UserRole } from '@/types';
 import MissionForm from '@/components/missions/MissionForm';
 
-export default function NewMissionPage() {
+export default function CreateMissionPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
-  // RBAC check: Only ADMIN and TRAINER can create missions
+  // RBAC check: Only ADMIN can create missions
   useEffect(() => {
-    if (!loading && (!user || (user.role !== UserRole.ADMIN && user.role !== UserRole.TRAINER))) {
+    if (!authLoading && (!user || user.role !== UserRole.ADMIN)) {
       router.push('/dashboard/missions');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
-  // Loading state
-  if (loading) {
+  // Combined loading state
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
@@ -31,8 +31,8 @@ export default function NewMissionPage() {
     );
   }
 
-  // Unauthorized redirect (belt & suspenders with useEffect)
-  if (!user || (user.role !== UserRole.ADMIN && user.role !== UserRole.TRAINER)) {
+  // Unauthorized redirect
+  if (!user || user.role !== UserRole.ADMIN) {
     return null;
   }
 
@@ -51,7 +51,7 @@ export default function NewMissionPage() {
         <div>
           <h1 className="font-display text-3xl font-bold text-dark-50">Create New Mission</h1>
           <p className="mt-2 text-dark-400">
-            Design a new training mission with learning objectives and configuration.
+            Create a new training mission with objectives and configuration.
           </p>
         </div>
       </div>

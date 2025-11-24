@@ -55,11 +55,11 @@ export default function MissionForm({ mode, initialData }: MissionFormProps) {
           title: initialData.title,
           description: initialData.description,
           difficulty: mapDifficultyToDb(initialData.difficulty),
-          type: MissionType.PVE, // Default from database
+          type: initialData.type || MissionType.PVE,
           status: initialData.status as MissionStatus,
-          duration: initialData.estimatedDuration || 30,
-          learningObjectives: initialData.objectives?.length
-            ? initialData.objectives.map((obj) => obj.description).join(', ')
+          duration: initialData.duration || 30,
+          learningObjectives: Array.isArray(initialData.learningObjectives) && initialData.learningObjectives.length
+            ? initialData.learningObjectives.join(', ')
             : '',
         }
       : defaultMissionFormValues,
@@ -105,7 +105,7 @@ export default function MissionForm({ mode, initialData }: MissionFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['missions'] });
       queryClient.invalidateQueries({ queryKey: ['mission', initialData?.id] });
-      router.push(`/dashboard/missions/${initialData?.id}`);
+      router.push('/dashboard/missions');
       router.refresh();
     },
   });
@@ -115,11 +115,18 @@ export default function MissionForm({ mode, initialData }: MissionFormProps) {
     try {
       if (mode === 'create') {
         await createMutation.mutateAsync(data);
+        console.log('Mission created successfully');
       } else {
         await updateMutation.mutateAsync(data);
+        console.log('Mission updated successfully');
       }
     } catch (error: any) {
       console.error('Form submission error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.statusCode
+      });
     }
   };
 
@@ -127,6 +134,16 @@ export default function MissionForm({ mode, initialData }: MissionFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      {/* Success Alert */}
+      {mutation.isSuccess && (
+        <div className="rounded-lg border border-success/20 bg-success/10 p-4 text-success">
+          <p className="font-semibold">Success!</p>
+          <p className="text-sm">
+            Mission {mode === 'create' ? 'created' : 'updated'} successfully. Redirecting...
+          </p>
+        </div>
+      )}
+
       {/* Error Alert */}
       {mutation.isError && (
         <div className="rounded-lg border border-error/20 bg-error/10 p-4 text-error">

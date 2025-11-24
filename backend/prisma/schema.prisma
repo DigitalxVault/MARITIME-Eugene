@@ -47,7 +47,8 @@ model User {
   deletedAt DateTime? // Soft delete support
 
   // Relations
-  playerProfile PlayerProfile?
+  playerProfile      PlayerProfile?
+  trainerAssignments TrainerAssignment[] @relation("TrainerAssignments")
 
   @@index([email])
   @@index([role])
@@ -62,6 +63,7 @@ model PlayerProfile {
 
   // Performance Metrics
   winRate          Float   @default(0.0) // PvP win rate (0.0 - 1.0)
+  totalScore       Float   @default(0.0) // Cumulative mission score
   averageScore     Float   @default(0.0) // Average mission score
   missionsCompleted Int    @default(0)
   totalTimeSpent   Int     @default(0) // Total time in minutes
@@ -70,10 +72,12 @@ model PlayerProfile {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  missionResults MissionResult[]
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missionResults   MissionResult[]
+  assignedTrainers TrainerAssignment[]   @relation("AssignedToTrainers")
 
   @@index([username])
+  @@index([totalScore])
   @@map("player_profiles")
 }
 
@@ -129,4 +133,21 @@ model MissionResult {
   @@index([playerId])
   @@index([completedAt])
   @@map("mission_results")
+}
+
+model TrainerAssignment {
+  id         String   @id @default(cuid())
+  trainerId  String   // User ID where role = TRAINER
+  playerId   String   // PlayerProfile ID
+  assignedAt DateTime @default(now())
+  assignedBy String   // User ID who made the assignment (ADMIN)
+
+  // Relations
+  trainer User          @relation("TrainerAssignments", fields: [trainerId], references: [id], onDelete: Cascade)
+  player  PlayerProfile @relation("AssignedToTrainers", fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([trainerId, playerId])
+  @@index([trainerId])
+  @@index([playerId])
+  @@map("trainer_assignments")
 }

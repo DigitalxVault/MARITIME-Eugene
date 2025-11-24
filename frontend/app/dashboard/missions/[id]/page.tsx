@@ -92,14 +92,8 @@ export default function MissionDetailPage() {
       </div>
 
       {/* Mission Info Grid */}
-      <div className="mb-8 grid gap-4 md:grid-cols-4">
-        <InfoCard icon={<ClockIcon />} label="Duration" value={formatDuration(mission.estimatedDuration)} />
-        <InfoCard icon={<TargetIcon />} label="Passing Score" value={`${mission.passingScore}%`} />
-        <InfoCard
-          icon={<AttemptIcon />}
-          label="Max Attempts"
-          value={mission.maxAttempts ? mission.maxAttempts.toString() : 'Unlimited'}
-        />
+      <div className="mb-8 grid gap-4 md:grid-cols-2">
+        <InfoCard icon={<ClockIcon />} label="Duration" value={`${mission.duration} min`} />
         <InfoCard
           icon={<CalendarIcon />}
           label="Created"
@@ -173,12 +167,11 @@ export default function MissionDetailPage() {
           </div>
 
           {/* Statistics */}
-          {mission._count && (
+          {mission._count?.results !== undefined && (
             <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
               <h2 className="mb-4 text-lg font-semibold text-dark-50">Statistics</h2>
               <div className="space-y-3">
-                <StatRow label="Total Attempts" value={mission._count.attempts.toString()} />
-                <StatRow label="Active Players" value={mission._count.players.toString()} />
+                <StatRow label="Total Attempts" value={mission._count.results.toString()} />
               </div>
             </div>
           )}

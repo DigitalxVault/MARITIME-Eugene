@@ -2,15 +2,18 @@
 
 /**
  * Dashboard Home Page
- * Overview and quick stats
+ * Overview and quick stats with leaderboard widget
  */
 
 import React from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { UserRole } from '@/types';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import { MissionDistributionChart } from '@/components/dashboard/charts';
 import { api } from '@/lib/api';
+import { formatNumber, getInitials } from '@/lib/utils';
 
 // Analytics Overview Response Type
 interface AnalyticsOverview {
@@ -29,6 +32,25 @@ interface AnalyticsOverview {
   };
 }
 
+// Leaderboard Types
+interface LeaderboardRanking {
+  playerId: string;
+  username: string;
+  rank: string;
+  position: number;
+  score: number;
+  averageScore: number;
+  completions: number;
+  totalTimeSpent: number;
+}
+
+interface LeaderboardResponse {
+  rankings: LeaderboardRanking[];
+  period: string;
+  metric: string;
+  totalPlayers: number;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
 
@@ -38,6 +60,14 @@ export default function DashboardPage() {
     queryFn: () => api.get<AnalyticsOverview>('/analytics/overview'),
     refetchInterval: 30000, // Refresh every 30 seconds
     staleTime: 20000, // Consider data stale after 20 seconds
+  });
+
+  // Fetch top 5 leaderboard for widget
+  const { data: leaderboard, isLoading: leaderboardLoading } = useQuery<LeaderboardResponse>({
+    queryKey: ['leaderboard', 'widget'],
+    queryFn: () => api.get<LeaderboardResponse>('/leaderboard?limit=5'),
+    refetchInterval: 30000,
+    staleTime: 20000,
   });
 
   return (
@@ -105,20 +135,125 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ActivityFeed pollInterval={10000} limit={15} />
+      {/* Analytics Charts */}
+      <div className="mb-8 grid gap-6 md:grid-cols-2">
+        <MissionDistributionChart
+          title="Missions by Difficulty"
+          data={analyticsLoading ? undefined : analytics?.distributions?.missionsByDifficulty}
+          dataKey="difficulty"
+          colors={['#10b981', '#f59e0b', '#ef4444', '#0284c7']}
+        />
+        <MissionDistributionChart
+          title="Missions by Type"
+          data={analyticsLoading ? undefined : analytics?.distributions?.missionsByType}
+          dataKey="type"
+          colors={['#0284c7', '#d946ef', '#3b82f6', '#0ea5e9']}
+        />
+      </div>
 
-        <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
-          <h2 className="mb-4 text-lg font-semibold text-dark-50">Quick Actions</h2>
-          <div className="space-y-3">
-            {user?.role !== UserRole.PLAYER && (
-              <QuickActionButton href="/dashboard/missions/new" label="Create New Mission" />
+      {/* Content Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Activity Feed - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <ActivityFeed pollInterval={10000} limit={15} />
+        </div>
+
+        {/* Sidebar - Takes 1 column */}
+        <div className="space-y-6">
+          {/* Leaderboard Widget */}
+          <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-dark-50">Top Players</h2>
+              <Link
+                href="/dashboard/leaderboard"
+                className="text-sm text-primary-500 hover:text-primary-400 transition-colors"
+              >
+                View All →
+              </Link>
+            </div>
+
+            {leaderboardLoading ? (
+              // Loading state
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-8 w-8 animate-pulse rounded-full bg-dark-700"></div>
+                    <div className="flex-1">
+                      <div className="h-4 w-24 animate-pulse rounded bg-dark-700 mb-1"></div>
+                      <div className="h-3 w-16 animate-pulse rounded bg-dark-700"></div>
+                    </div>
+                    <div className="h-6 w-12 animate-pulse rounded bg-dark-700"></div>
+                  </div>
+                ))}
+              </div>
+            ) : !leaderboard?.rankings.length ? (
+              <div className="py-8 text-center text-sm text-dark-400">
+                No leaderboard data yet
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {leaderboard.rankings.map((ranking, index) => (
+                  <LeaderboardItem key={ranking.playerId} ranking={ranking} index={index} />
+                ))}
+              </div>
             )}
-            <QuickActionButton href="/dashboard/missions" label="Browse Missions" />
-            <QuickActionButton href="/dashboard/leaderboard" label="View Leaderboard" />
+          </div>
+
+          {/* Quick Actions */}
+          <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
+            <h2 className="mb-4 text-lg font-semibold text-dark-50">Quick Actions</h2>
+            <div className="space-y-3">
+              {user?.role !== UserRole.PLAYER && (
+                <QuickActionButton href="/dashboard/missions/new" label="Create New Mission" />
+              )}
+              <QuickActionButton href="/dashboard/missions" label="Browse Missions" />
+              <QuickActionButton href="/dashboard/leaderboard" label="View Leaderboard" />
+              {(user?.role === UserRole.ADMIN || user?.role === UserRole.TRAINER) && (
+                <QuickActionButton href="/dashboard/players" label="View Players" />
+              )}
+            </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Leaderboard Item Component
+function LeaderboardItem({ ranking, index }: { ranking: LeaderboardRanking; index: number }) {
+  const initials = getInitials(ranking.username);
+
+  const getPositionColor = (position: number) => {
+    if (position === 1) return 'text-warning';
+    if (position === 2) return 'text-dark-300';
+    if (position === 3) return 'text-warning/70';
+    return 'text-dark-400';
+  };
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-dark-800/50 bg-dark-800/20 p-3 transition-colors hover:border-primary-500/30 hover:bg-dark-800/30">
+      {/* Position */}
+      <div className={`flex h-8 w-8 items-center justify-center rounded-full font-display text-sm font-bold ${getPositionColor(ranking.position)}`}>
+        #{ranking.position}
+      </div>
+
+      {/* Avatar */}
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500/20 text-xs font-semibold text-primary-500">
+        {initials}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold text-dark-50 truncate">{ranking.username}</div>
+        <div className="text-xs text-dark-400">
+          {ranking.completions} missions
+        </div>
+      </div>
+
+      {/* Score */}
+      <div className="text-right">
+        <div className="text-sm font-bold text-primary-500">{formatNumber(ranking.score)}</div>
+        <div className="text-xs text-dark-400">{ranking.averageScore.toFixed(0)}%</div>
       </div>
     </div>
   );
@@ -162,12 +297,12 @@ function StatCard({
 // Quick Action Button Component
 function QuickActionButton({ href, label }: { href: string; label: string }) {
   return (
-    <a
+    <Link
       href={href}
       className="block rounded-lg border border-dark-700 bg-dark-800 px-4 py-3 text-sm font-medium text-dark-200 transition-colors hover:border-primary-500/50 hover:bg-dark-700 hover:text-dark-50"
     >
       {label}
-    </a>
+    </Link>
   );
 }
 

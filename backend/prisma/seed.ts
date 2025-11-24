@@ -14,6 +14,7 @@ async function main() {
   console.log('🌱 Starting database seeding...');
 
   // Clear existing data (in development only)
+  await prisma.trainerAssignment.deleteMany();
   await prisma.missionResult.deleteMany();
   await prisma.playerProfile.deleteMany();
   await prisma.mission.deleteMany();
@@ -68,6 +69,51 @@ async function main() {
     },
   });
   console.log(`  ✅ Created LEARNER: ${learnerUser.email} with PlayerProfile`);
+
+  // Create additional learners
+  const learner2User = await prisma.user.create({
+    data: {
+      email: 'cadet.lim@navytraining.sg',
+      password: hashedLearnerPassword,
+      role: UserRole.LEARNER,
+      playerProfile: {
+        create: {
+          username: 'Cadet_Lim_Kai_Rong',
+          rank: 'Naval Cadet',
+          winRate: 0.65,
+          averageScore: 78.0,
+          missionsCompleted: 3,
+          totalTimeSpent: 120,
+        },
+      },
+    },
+    include: {
+      playerProfile: true,
+    },
+  });
+  console.log(`  ✅ Created LEARNER: ${learner2User.email} with PlayerProfile`);
+
+  const learner3User = await prisma.user.create({
+    data: {
+      email: 'cadet.chen@navytraining.sg',
+      password: hashedLearnerPassword,
+      role: UserRole.LEARNER,
+      playerProfile: {
+        create: {
+          username: 'Cadet_Chen_Hui_Min',
+          rank: 'Naval Cadet',
+          winRate: 0.80,
+          averageScore: 90.5,
+          missionsCompleted: 8,
+          totalTimeSpent: 240,
+        },
+      },
+    },
+    include: {
+      playerProfile: true,
+    },
+  });
+  console.log(`  ✅ Created LEARNER: ${learner3User.email} with PlayerProfile`);
 
   // Create Sample Missions (Singapore Maritime Context)
   console.log('🎯 Creating sample missions...');
@@ -156,21 +202,81 @@ async function main() {
       },
     });
     console.log(`  ✅ Created MissionResult: ${mission1.title} (2nd attempt) - Score: ${result3.score}`);
+
+    // Add results for other learners
+    if (learner2User.playerProfile) {
+      await prisma.missionResult.create({
+        data: {
+          missionId: mission1.id,
+          playerId: learner2User.playerProfile.id,
+          score: 75.0,
+          timeSpent: 22,
+          isCompleted: true,
+          achievements: ['First_Mission'],
+          completedAt: new Date('2024-11-16T11:30:00Z'),
+        },
+      });
+      console.log(`  ✅ Created MissionResult for ${learner2User.playerProfile.username}`);
+    }
+
+    if (learner3User.playerProfile) {
+      await prisma.missionResult.create({
+        data: {
+          missionId: mission2.id,
+          playerId: learner3User.playerProfile.id,
+          score: 94.0,
+          timeSpent: 25,
+          isCompleted: true,
+          achievements: ['Strait_Master', 'Perfect_Score'],
+          completedAt: new Date('2024-11-17T13:00:00Z'),
+        },
+      });
+      console.log(`  ✅ Created MissionResult for ${learner3User.playerProfile.username}`);
+    }
+  }
+
+  // Create Trainer Assignments
+  console.log('👨‍🏫 Creating trainer assignments...');
+
+  if (learnerUser.playerProfile && learner2User.playerProfile && learner3User.playerProfile) {
+    await prisma.trainerAssignment.createMany({
+      data: [
+        {
+          trainerId: trainerUser.id,
+          playerId: learnerUser.playerProfile.id,
+          assignedBy: adminUser.id,
+        },
+        {
+          trainerId: trainerUser.id,
+          playerId: learner2User.playerProfile.id,
+          assignedBy: adminUser.id,
+        },
+        {
+          trainerId: trainerUser.id,
+          playerId: learner3User.playerProfile.id,
+          assignedBy: adminUser.id,
+        },
+      ],
+    });
+    console.log(`  ✅ Assigned 3 players to trainer`);
   }
 
   console.log('');
   console.log('🎉 Database seeding completed successfully!');
   console.log('');
   console.log('📋 Summary:');
-  console.log(`  - Users created: 3 (ADMIN, TRAINER, LEARNER)`);
+  console.log(`  - Users created: 5 (1 ADMIN, 1 TRAINER, 3 LEARNERs)`);
   console.log(`  - Missions created: 3 (Easy, Medium, Hard)`);
-  console.log(`  - Mission results created: 3`);
-  console.log(`  - Player profiles created: 1`);
+  console.log(`  - Mission results created: 5`);
+  console.log(`  - Player profiles created: 3`);
+  console.log(`  - Trainer assignments created: 3`);
   console.log('');
   console.log('🔐 Login Credentials:');
   console.log('  ADMIN:   admin@navytraining.sg / Admin123!');
   console.log('  TRAINER: trainer@navytraining.sg / Trainer123!');
   console.log('  LEARNER: cadet.tan@navytraining.sg / Cadet123!');
+  console.log('  LEARNER: cadet.lim@navytraining.sg / Cadet123!');
+  console.log('  LEARNER: cadet.chen@navytraining.sg / Cadet123!');
   console.log('');
 }
 
