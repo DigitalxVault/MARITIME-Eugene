@@ -126,7 +126,7 @@ apiClient.interceptors.response.use(
         // No refresh token, redirect to login
         TokenManager.clearTokens();
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          window.location.href = '/auth/login';
         }
         return Promise.reject(error);
       }
@@ -156,7 +156,7 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
 
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          window.location.href = '/auth/login';
         }
 
         return Promise.reject(refreshError);
