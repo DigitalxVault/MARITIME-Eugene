@@ -72,7 +72,7 @@ Get current authenticated user.
   "id": "user_001",
   "email": "admin@navytraining.sg",
   "role": "ADMIN",
-  "createdAt": "2024-01-01T00:00:00Z"
+  "createdAt": "2025-01-01T00:00:00Z"
 }
 ```
 
@@ -104,7 +104,7 @@ Get list of all missions with pagination and filters.
       "status": "ACTIVE",
       "duration": 30,
       "learningObjectives": ["Navigation", "Communication"],
-      "createdAt": "2024-01-15T00:00:00Z",
+      "createdAt": "2025-01-15T00:00:00Z",
       "createdBy": "admin_001"
     }
   ],
@@ -136,8 +136,8 @@ Get a specific mission by ID.
   "completions": 45,
   "averageScore": 82.5,
   "averageTime": 28,
-  "createdAt": "2024-01-15T00:00:00Z",
-  "updatedAt": "2024-01-20T00:00:00Z",
+  "createdAt": "2025-01-15T00:00:00Z",
+  "updatedAt": "2025-01-20T00:00:00Z",
   "createdBy": {
     "id": "admin_001",
     "name": "Admin User"
@@ -174,7 +174,7 @@ Create a new mission (ADMIN only).
   "status": "DRAFT",
   "duration": 45,
   "learningObjectives": ["Tactical Planning", "Team Coordination"],
-  "createdAt": "2024-01-25T00:00:00Z",
+  "createdAt": "2025-01-25T00:00:00Z",
   "createdBy": "admin_001"
 }
 ```
@@ -202,7 +202,7 @@ Update a mission (ADMIN/TRAINER with restrictions).
   "description": "Updated description",
   "difficulty": "MEDIUM",
   "status": "ACTIVE",
-  "updatedAt": "2024-01-26T00:00:00Z"
+  "updatedAt": "2025-01-26T00:00:00Z"
 }
 ```
 
@@ -235,7 +235,7 @@ Update mission status (ADMIN only).
 {
   "id": "mission_001",
   "status": "ARCHIVED",
-  "updatedAt": "2024-01-26T00:00:00Z"
+  "updatedAt": "2025-01-26T00:00:00Z"
 }
 ```
 
@@ -263,7 +263,7 @@ Get list of all players with metrics.
       "averageScore": 85.5,
       "winRate": 0.75,
       "totalTimeSpent": 180,
-      "lastActive": "2024-01-25T10:00:00Z"
+      "lastActive": "2025-01-25T10:00:00Z"
     }
   ],
   "pagination": {
@@ -304,7 +304,7 @@ Get detailed player profile.
     {
       "missionId": "mission_001",
       "title": "Singapore Strait Patrol",
-      "completedAt": "2024-01-24T00:00:00Z",
+      "completedAt": "2025-01-24T00:00:00Z",
       "score": 92,
       "timeSpent": 28
     }
@@ -328,20 +328,20 @@ Get player's mission progress.
       "status": "COMPLETED",
       "score": 92,
       "timeSpent": 28,
-      "completedAt": "2024-01-24T00:00:00Z"
+      "completedAt": "2025-01-24T00:00:00Z"
     }
   ],
   "currentProgress": {
     "missionId": "mission_002",
     "title": "Jurong Port Defense",
-    "startedAt": "2024-01-25T09:00:00Z",
+    "startedAt": "2025-01-25T09:00:00Z",
     "progress": 0.35
   },
   "achievements": [
     {
       "id": "ach_001",
       "name": "First Victory",
-      "unlockedAt": "2024-01-20T00:00:00Z"
+      "unlockedAt": "2025-01-20T00:00:00Z"
     }
   ]
 }
@@ -428,7 +428,7 @@ Get mission-specific analytics.
       "playerName": "Cadet Tan",
       "score": 92,
       "timeSpent": 28,
-      "completedAt": "2024-01-25T10:00:00Z"
+      "completedAt": "2025-01-25T10:00:00Z"
     }
   ]
 }
