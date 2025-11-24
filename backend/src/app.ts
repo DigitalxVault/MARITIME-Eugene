@@ -12,6 +12,8 @@ import authRoutes from './api/auth/auth.routes';
 import missionRoutes from './api/missions';
 import playerRoutes from './api/players';
 import analyticsRoutes from './api/analytics';
+import activityRoutes from './api/activity';
+import leaderboardRoutes from './api/leaderboard';
 
 // Create Express app
 export function createApp(): Application {
@@ -63,6 +65,8 @@ export function createApp(): Application {
   app.use('/api/missions', missionRoutes);
   app.use('/api/players', playerRoutes);
   app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/activity', activityRoutes);
+  app.use('/api/leaderboard', leaderboardRoutes);
 
   // ==================== ERROR HANDLING ====================
 

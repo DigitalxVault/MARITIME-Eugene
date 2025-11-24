@@ -7,6 +7,8 @@ interface GetPlayersParams {
   role?: UserRole;
   page: number;
   limit: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 // Commented out unused interface
@@ -31,7 +33,7 @@ export class PlayerService {
    * Get all players with pagination and filtering
    */
   async getPlayers(params: GetPlayersParams) {
-    const { search, role, page, limit } = params;
+    const { search, role, page, limit, sortBy = 'level', sortOrder = 'desc' } = params;
     const skip = (page - 1) * limit;
 
     // Build where clause
@@ -49,6 +51,26 @@ export class PlayerService {
         ],
       }),
     };
+
+    // Build order by clause - map frontend fields to database fields
+    let orderBy: any = {};
+
+    // Fields that exist on PlayerProfile
+    const profileFields = ['level', 'experiencePoints', 'totalMissionsCompleted', 'averageScore', 'winRate'];
+
+    if (profileFields.includes(sortBy)) {
+      // Sort by player profile field
+      orderBy = {
+        playerProfile: {
+          [sortBy]: sortOrder,
+        },
+      };
+    } else {
+      // Default to createdAt on user
+      orderBy = {
+        createdAt: sortOrder,
+      };
+    }
 
     // Get users with player profiles
     const [users, total] = await Promise.all([
@@ -69,9 +91,7 @@ export class PlayerService {
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy,
       }),
       prisma.user.count({ where }),
     ]);

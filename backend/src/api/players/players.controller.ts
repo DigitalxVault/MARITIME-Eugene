@@ -16,13 +16,15 @@ export class PlayerController {
    */
   async getPlayers(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { search, role, page = '1', limit = '10' } = req.query;
+      const { search, role, page = '1', limit = '10', sortBy, sortOrder } = req.query;
 
       const result = await playerService.getPlayers({
         search: search as string | undefined,
         role: role as UserRole | undefined,
         page: parseInt(page as string, 10),
         limit: parseInt(limit as string, 10),
+        sortBy: sortBy as string | undefined,
+        sortOrder: sortOrder as 'asc' | 'desc' | undefined,
       });
 
       console.log('[PlayerController] Result data length:', result.data.length);
