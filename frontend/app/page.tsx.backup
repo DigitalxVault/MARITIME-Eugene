@@ -11,13 +11,11 @@ export default function Home() {
   useEffect(() => {
     if (loading) return; // Wait for auth check to complete
 
-    if (isAuthenticated) {
-      // Redirect authenticated users to dashboard
-      router.push('/dashboard');
-    } else {
+    if (!isAuthenticated) {
       // Redirect unauthenticated users to login
       router.push('/login');
     }
+    // Authenticated users stay on root page which renders dashboard
   }, [isAuthenticated, loading, router]);
 
   // Show loading while redirecting
