@@ -71,8 +71,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-dark-950 bg-grid-pattern px-4">
-      <div className="w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center px-4">
+      {/* Background layers - bottom to top */}
+      <div className="absolute inset-0 bg-dark-950 login-grid-pattern"></div>
+
+      {/* Wallpaper on top with 15% opacity */}
+      <div className="absolute inset-0 login-wallpaper"></div>
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="mb-4 inline-block rounded-lg bg-primary-500/10 p-3">

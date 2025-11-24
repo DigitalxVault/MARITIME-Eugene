@@ -118,10 +118,10 @@ export default function DashboardPage() {
           <h2 className="mb-4 text-lg font-semibold text-dark-50">Quick Actions</h2>
           <div className="space-y-3">
             {user?.role !== UserRole.PLAYER && (
-              <QuickActionButton href="/dashboard/missions/new" label="Create New Mission" />
+              <QuickActionButton href="/missions/new" label="Create New Mission" />
             )}
-            <QuickActionButton href="/dashboard/missions" label="Browse Missions" />
-            <QuickActionButton href="/dashboard/leaderboard" label="View Leaderboard" />
+            <QuickActionButton href="/missions" label="Browse Missions" />
+            <QuickActionButton href="/leaderboard" label="View Leaderboard" />
           </div>
         </div>
       </div>

@@ -21,31 +21,31 @@ interface DashboardLayoutProps {
 const navigationItems = [
   {
     label: 'Dashboard',
-    href: '/dashboard',
+    href: '/',
     icon: HomeIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
   },
   {
     label: 'Missions',
-    href: '/dashboard/missions',
+    href: '/missions',
     icon: MissionIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
   },
   {
     label: 'Players',
-    href: '/dashboard/players',
+    href: '/players',
     icon: UsersIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER],
   },
   {
     label: 'Leaderboard',
-    href: '/dashboard/leaderboard',
+    href: '/leaderboard',
     icon: TrophyIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
   },
   {
     label: 'Analytics',
-    href: '/dashboard/analytics',
+    href: '/analytics',
     icon: ChartIcon,
     roles: [UserRole.ADMIN, UserRole.TRAINER],
   },
@@ -166,7 +166,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           {/* Page Content */}
-          <div className="flex-1 overflow-y-auto bg-dark-950 bg-grid-pattern">
+          <div className="flex-1 overflow-y-auto">
             {children}
           </div>
         </main>
