@@ -232,19 +232,15 @@ export class MissionService {
   /**
    * Check if a user can modify a mission
    */
-  async canUserModifyMission(userId: string, missionId: string, userRole: UserRole): Promise<boolean> {
+  async canUserModifyMission(_userId: string, _missionId: string, userRole: UserRole): Promise<boolean> {
     // ADMIN can modify any mission
     if (userRole === UserRole.ADMIN) {
       return true;
     }
 
-    // TRAINER can only modify their own missions
+    // TRAINER can modify all missions
     if (userRole === UserRole.TRAINER) {
-      const mission = await prisma.mission.findUnique({
-        where: { id: missionId, deletedAt: null },
-        select: { createdBy: true },
-      });
-      return mission?.createdBy === userId;
+      return true;
     }
 
     // LEARNER cannot modify missions

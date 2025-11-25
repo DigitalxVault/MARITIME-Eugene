@@ -35,7 +35,8 @@ export default function MissionsPage() {
     queryFn: () => api.get<PaginatedResponse<Mission>>('/missions', filters),
   });
 
-  const canCreateMission = user?.role === UserRole.ADMIN || user?.role === UserRole.TRAINER;
+  const canCreateMission = user?.role === UserRole.ADMIN;
+  const canDeleteMission = user?.role === UserRole.ADMIN;
 
   return (
     <div className="p-6">
@@ -47,8 +48,8 @@ export default function MissionsPage() {
             Browse and manage training missions
           </p>
         </div>
-        {canCreateMission && (
-          <div className="flex gap-3">
+        <div className="flex gap-3">
+          {canDeleteMission && (
             <button
               onClick={() => setIsEditMode(!isEditMode)}
               className={`rounded-lg border px-4 py-2 font-semibold transition-all ${
@@ -57,16 +58,18 @@ export default function MissionsPage() {
                   : 'border-dark-700 bg-dark-800 text-dark-200 hover:border-primary-500/50 hover:bg-dark-700'
               }`}
             >
-              {isEditMode ? 'Cancel Edit' : 'Edit Missions'}
+              {isEditMode ? 'Cancel Delete' : 'Delete Mission(s)'}
             </button>
+          )}
+          {canCreateMission && (
             <Link
               href="/dashboard/missions/new"
               className="rounded-lg bg-primary-500 px-4 py-2 font-semibold text-white shadow-sci-fi transition-all hover:bg-primary-600"
             >
               Create Mission
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -314,19 +317,6 @@ function ClockIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  );
-}
-
-function TargetIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
       />
     </svg>
   );
