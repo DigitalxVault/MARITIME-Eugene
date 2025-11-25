@@ -171,12 +171,15 @@ export default function ActivityFeed({ pollInterval = 10000, limit = 10 }: Activ
               </div>
             ))}
 
-            {!showAll && activities.length > INITIAL_DISPLAY_COUNT && (
+            {activities.length > INITIAL_DISPLAY_COUNT && (
               <button
-                onClick={() => setShowAll(true)}
+                onClick={() => setShowAll(!showAll)}
                 className="w-full rounded-lg border border-dark-700 bg-dark-800 px-4 py-2.5 text-sm font-medium text-dark-200 transition-all hover:border-primary-500/50 hover:bg-dark-700 hover:text-primary-500"
               >
-                LOAD MORE ({activities.length - INITIAL_DISPLAY_COUNT} more)
+                {showAll
+                  ? 'SHOW LESS'
+                  : `LOAD MORE (${activities.length - INITIAL_DISPLAY_COUNT} more)`
+                }
               </button>
             )}
           </>
