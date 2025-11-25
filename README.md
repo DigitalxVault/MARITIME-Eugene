@@ -139,6 +139,74 @@ docker-compose up -d
 
 ---
 
+## ⚙️ Environment Variables
+
+### Backend Environment Variables (`backend/.env`)
+
+```bash
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/maritime_db"
+
+# Redis
+REDIS_URL="redis://localhost:6379"
+
+# JWT Secrets (Change these in production!)
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+JWT_REFRESH_SECRET="your-super-secret-refresh-key-change-this-in-production"
+
+# JWT Expiration
+JWT_EXPIRES_IN="15m"          # Access token expires in 15 minutes
+JWT_REFRESH_EXPIRES_IN="7d"   # Refresh token expires in 7 days
+
+# Server Configuration
+PORT=4000
+NODE_ENV="development"        # Options: development, production
+
+# CORS Configuration
+CORS_ORIGIN="http://localhost:3000"  # Frontend URL
+
+# Rate Limiting
+RATE_LIMIT_MAX=5              # Max login attempts
+RATE_LIMIT_WINDOW_MS=900000   # 15 minutes in milliseconds
+
+# Bcrypt Configuration
+BCRYPT_SALT_ROUNDS=10         # Password hashing strength
+```
+
+### Frontend Environment Variables (`frontend/.env`)
+
+```bash
+# Backend API URL
+NEXT_PUBLIC_API_URL="http://localhost:4000"
+
+# Optional: Analytics, monitoring, etc.
+# NEXT_PUBLIC_ANALYTICS_ID="your-analytics-id"
+```
+
+### Required vs Optional
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | ✅ Required | PostgreSQL connection string |
+| `REDIS_URL` | ✅ Required | Redis connection string |
+| `JWT_SECRET` | ✅ Required | Secret key for JWT access tokens |
+| `JWT_REFRESH_SECRET` | ✅ Required | Secret key for JWT refresh tokens |
+| `PORT` | ⚠️ Optional | Backend server port (default: 4000) |
+| `NODE_ENV` | ⚠️ Optional | Environment mode (default: development) |
+| `CORS_ORIGIN` | ✅ Required | Frontend URL for CORS |
+| `NEXT_PUBLIC_API_URL` | ✅ Required | Backend API URL for frontend |
+
+### Production Configuration
+
+For production deployment, ensure you:
+1. **Generate strong secrets** for JWT keys (use `openssl rand -base64 32`)
+2. **Update CORS_ORIGIN** with your production frontend URL
+3. **Set NODE_ENV** to `production`
+4. **Use managed database services** (AWS RDS, DigitalOcean Managed DB, etc.)
+5. **Enable SSL/TLS** for database connections
+
+---
+
 ## 💻 Local Development
 
 ### Method 1: Docker Compose (Recommended)
@@ -262,42 +330,215 @@ docker-compose restart [service-name]
 ## 📡 API Endpoints
 
 ### Authentication
+
+#### Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@navytraining.sg",
+  "password": "Admin123!"
+}
 ```
-POST   /api/auth/login         # Login with credentials
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "user": {
+      "id": "uuid-here",
+      "email": "admin@navytraining.sg",
+      "username": "Admin User",
+      "role": "ADMIN"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+#### Other Auth Endpoints
+```http
 POST   /api/auth/logout        # Logout current session
 POST   /api/auth/refresh       # Refresh access token
 GET    /api/auth/me            # Get current user profile
 ```
 
 ### Mission Management
+
+#### List Missions
+```http
+GET /api/missions?page=1&limit=10&status=ACTIVE&difficulty=MEDIUM
+Authorization: Bearer <access-token>
 ```
-GET    /api/missions           # List missions (pagination, filters)
-GET    /api/missions/:id       # Get single mission
-POST   /api/missions           # Create mission (ADMIN/TRAINER)
-PUT    /api/missions/:id       # Update mission (ADMIN/TRAINER)
-DELETE /api/missions/:id       # Delete mission (ADMIN)
-PATCH  /api/missions/:id/status # Update status (ADMIN)
-GET    /api/missions/:id/stats # Get mission statistics
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-here",
+      "title": "Naval Navigation Basics",
+      "description": "Learn fundamental navigation skills",
+      "type": "PVE",
+      "difficulty": "MEDIUM",
+      "status": "ACTIVE",
+      "duration": 45,
+      "createdBy": "admin-uuid",
+      "createdAt": "2025-11-25T10:00:00Z",
+      "_count": {
+        "results": 12
+      }
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalCount": 25,
+    "totalPages": 3
+  }
+}
+```
+
+#### Create Mission
+```http
+POST /api/missions
+Authorization: Bearer <access-token>
+Content-Type: application/json
+
+{
+  "title": "Advanced Radar Operations",
+  "description": "Master radar system operations",
+  "type": "PVE",
+  "difficulty": "HARD",
+  "status": "DRAFT",
+  "duration": 60
+}
+```
+
+#### Other Mission Endpoints
+```http
+GET    /api/missions/:id          # Get single mission
+PUT    /api/missions/:id          # Update mission (ADMIN/TRAINER)
+DELETE /api/missions/:id          # Soft delete mission (ADMIN)
+PATCH  /api/missions/:id/status   # Update status (ADMIN)
+GET    /api/missions/:id/stats    # Get mission statistics
 ```
 
 ### Player Management
+
+#### Get Player Details
+```http
+GET /api/players/:id
+Authorization: Bearer <access-token>
 ```
-GET    /api/players            # List players
-GET    /api/players/:id        # Get player details
-GET    /api/players/me         # Get current user's profile
-PUT    /api/players/:id        # Update player profile
-GET    /api/players/:id/progress # Get player progress
-POST   /api/players/:id/progress # Record mission result
-GET    /api/players/:id/stats  # Get player statistics
-GET    /api/players/leaderboard # Get leaderboard
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "player-uuid",
+    "email": "learner@navytraining.sg",
+    "username": "John Doe",
+    "role": "LEARNER",
+    "rank": "Ensign",
+    "profile": {
+      "totalScore": 850,
+      "completedMissions": 10,
+      "activeMissions": 3
+    },
+    "recentResults": [
+      {
+        "missionId": "mission-uuid",
+        "missionTitle": "Naval Navigation Basics",
+        "score": 85,
+        "timeSpent": 42,
+        "isCompleted": true,
+        "completedAt": "2025-11-20T14:30:00Z"
+      }
+    ]
+  }
+}
+```
+
+#### Other Player Endpoints
+```http
+GET    /api/players               # List players
+GET    /api/players/me            # Get current user's profile
+PUT    /api/players/:id           # Update player profile
+GET    /api/players/:id/progress  # Get player progress
+POST   /api/players/:id/progress  # Record mission result
+GET    /api/players/:id/stats     # Get player statistics
+GET    /api/players/leaderboard   # Get leaderboard
 ```
 
 ### Analytics
+
+#### Dashboard Overview
+```http
+GET /api/analytics/overview
+Authorization: Bearer <access-token>
 ```
-GET    /api/analytics/overview    # Dashboard overview metrics
-GET    /api/analytics/missions/:id # Mission-specific analytics
-GET    /api/analytics/players/:id  # Player analytics
-GET    /api/analytics/trending     # Trending missions
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "metrics": {
+      "totalMissions": 50,
+      "activeMissions": 25,
+      "totalPlayers": 120,
+      "activePlayers": 80,
+      "totalCompletions": 450,
+      "completionRate": 75.5
+    },
+    "distributions": {
+      "missionsByDifficulty": [
+        { "difficulty": "EASY", "count": 15 },
+        { "difficulty": "MEDIUM", "count": 20 },
+        { "difficulty": "HARD", "count": 15 }
+      ],
+      "missionsByType": [
+        { "type": "PVE", "count": 35 },
+        { "type": "PVP", "count": 15 }
+      ]
+    }
+  }
+}
+```
+
+#### Other Analytics Endpoints
+```http
+GET    /api/analytics/missions/:id  # Mission-specific analytics
+GET    /api/analytics/players/:id   # Player analytics
+GET    /api/analytics/trending      # Trending missions
+```
+
+### Query Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `page` | number | Page number (default: 1) | `?page=2` |
+| `limit` | number | Items per page (default: 10) | `?limit=20` |
+| `status` | enum | Filter by status | `?status=ACTIVE` |
+| `difficulty` | enum | Filter by difficulty | `?difficulty=HARD` |
+| `type` | enum | Filter by type | `?type=PVE` |
+| `search` | string | Search in title/description | `?search=navigation` |
+| `sortBy` | string | Sort field (default: createdAt) | `?sortBy=title` |
+| `sortOrder` | enum | Sort order: asc/desc | `?sortOrder=desc` |
+
+### Authentication Headers
+
+All protected endpoints require JWT token in Authorization header:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 📘 **Full API Documentation**: [docs/API-SWAGGER.md](./docs/API-SWAGGER.md)
@@ -365,6 +606,76 @@ mission-control-dashboard/
 ├── docker-compose.yml         # Docker orchestration
 └── README.md
 ```
+
+---
+
+## 🗄️ Database Schema
+
+The application uses PostgreSQL with Prisma ORM for type-safe database operations.
+
+### Core Tables
+
+#### **Users** (`User`)
+- `id` (String, UUID) - Primary key
+- `email` (String, unique) - User email for authentication
+- `username` (String, unique) - Display name
+- `password` (String) - Hashed with bcrypt (salt rounds: 10)
+- `role` (Enum) - `ADMIN`, `TRAINER`, or `LEARNER`
+- `createdAt`, `updatedAt` (DateTime) - Timestamps
+- `deletedAt` (DateTime?) - Soft delete timestamp
+
+#### **Missions** (`Mission`)
+- `id` (String, UUID) - Primary key
+- `title` (String) - Mission name
+- `description` (String) - Mission details
+- `type` (Enum) - `PVE` (Campaign) or `PVP` (Multiplayer)
+- `difficulty` (Enum) - `EASY`, `MEDIUM`, or `HARD`
+- `status` (Enum) - `DRAFT`, `ACTIVE`, `COMPLETED`, or `ARCHIVED`
+- `duration` (Int) - Estimated completion time in minutes
+- `createdBy` (String) - Foreign key to User
+- `createdAt`, `updatedAt` (DateTime) - Timestamps
+- `deletedAt` (DateTime?) - Soft delete timestamp
+
+#### **PlayerProfiles** (`PlayerProfile`)
+- `id` (String, UUID) - Primary key
+- `userId` (String, unique) - Foreign key to User
+- `rank` (String) - Player rank/level (default: "Ensign")
+- `totalScore` (Int) - Cumulative score across all missions
+- `createdAt`, `updatedAt` (DateTime) - Timestamps
+
+#### **MissionResults** (`MissionResult`)
+- `id` (String, UUID) - Primary key
+- `missionId` (String) - Foreign key to Mission
+- `playerId` (String) - Foreign key to User
+- `score` (Int) - Performance score (0-100)
+- `timeSpent` (Int) - Time taken in minutes
+- `isCompleted` (Boolean) - Completion status
+- `feedback` (String?) - Optional trainer feedback
+- `completedAt` (DateTime) - Timestamp of completion
+
+### Soft Delete Pattern
+
+All primary entities use **soft delete**:
+- Records are never permanently deleted from the database
+- `deletedAt` field is set to current timestamp when "deleted"
+- Queries filter out soft-deleted records using `WHERE deletedAt IS NULL`
+- Soft-deleted records remain visible in Prisma Studio for audit purposes
+- Only ADMIN users can soft delete missions
+
+### View Database
+
+```bash
+# Open Prisma Studio (database GUI)
+cd backend
+npx prisma studio
+```
+
+Access at: http://localhost:5555
+
+### Full Schema Reference
+
+Complete Prisma schema: [`backend/src/prisma/schema.prisma`](./backend/src/prisma/schema.prisma)
+ER Diagram: [`docs/ERD.md`](./docs/ERD.md)
 
 ---
 
@@ -482,6 +793,66 @@ curl -X POST http://localhost:4000/api/auth/login \
 curl http://localhost:4000/api/missions \
   -H "Authorization: Bearer <your-token>"
 ```
+
+---
+
+## ⚠️ Known Issues & Limitations
+
+### Current Limitations
+
+#### 1. Player Detail Page (In Development)
+The Player Detail Page (`/dashboard/players/:id`) currently shows a placeholder "Coming Soon" message. Full implementation is planned with the following features:
+
+**Planned Features:**
+- Complete mission history table with scores and timestamps
+- Performance trend charts (score over time, completion rates)
+- Current active mission status
+- Detailed player statistics and metrics
+- Mission completion timeline
+
+**Status:** 🔄 In Development (Priority: High)
+
+**Workaround:** Use `/dashboard/players` list page to view basic player information and stats.
+
+#### 2. Real-Time Updates
+- Dashboard uses HTTP polling (30-second intervals) instead of WebSocket connections
+- Activity feed updates every 10 seconds
+- Leaderboard refreshes every 30 seconds
+
+**Impact:** Minor delay in real-time data updates
+
+**Status:** ✅ Working as designed (WebSocket implementation not required for MVP)
+
+#### 3. Mission Deletion
+- All mission deletions are soft deletes (records remain in database with `deletedAt` timestamp)
+- No hard delete option available through UI
+- Soft-deleted missions are hidden from all users but visible in Prisma Studio
+
+**Status:** ✅ Working as designed (Preserves audit trail)
+
+### Upcoming Features
+
+The following features are planned for future releases:
+
+- [ ] Player Detail Page (v1.1.0)
+- [ ] Advanced analytics dashboard
+- [ ] Mission template system
+- [ ] Batch player import/export
+- [ ] Email notifications for mission assignments
+- [ ] Mobile responsive improvements
+- [ ] Multi-language support (i18n)
+
+### Reporting Issues
+
+If you encounter any bugs or have feature requests:
+
+1. Check existing issues: [GitHub Issues](https://github.com/DigitalxVault/MARITIME-Eugene/issues)
+2. Create a new issue with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Screenshots (if applicable)
+   - Environment details (browser, OS)
 
 ---
 
