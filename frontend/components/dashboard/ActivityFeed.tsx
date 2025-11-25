@@ -26,7 +26,10 @@ export default function ActivityFeed({ pollInterval = 10000, limit = 10 }: Activ
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const lastFetchRef = useRef<string | null>(null);
+
+  const INITIAL_DISPLAY_COUNT = 10;
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -154,18 +157,29 @@ export default function ActivityFeed({ pollInterval = 10000, limit = 10 }: Activ
             No recent activity
           </div>
         ) : (
-          activities.map((activity) => (
-            <div
-              key={activity.id}
-              className="flex items-start gap-3 rounded-lg border border-dark-800 bg-dark-800/30 p-3 transition-colors hover:border-dark-700"
-            >
-              {getActivityIcon(activity.type)}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-dark-200 break-words">{activity.message}</p>
-                <p className="mt-1 text-xs text-dark-500">{formatTime(activity.timestamp)}</p>
+          <>
+            {(showAll ? activities : activities.slice(0, INITIAL_DISPLAY_COUNT)).map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-start gap-3 rounded-lg border border-dark-800 bg-dark-800/30 p-3 transition-colors hover:border-dark-700"
+              >
+                {getActivityIcon(activity.type)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-dark-200 break-words">{activity.message}</p>
+                  <p className="mt-1 text-xs text-dark-500">{formatTime(activity.timestamp)}</p>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+
+            {!showAll && activities.length > INITIAL_DISPLAY_COUNT && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="w-full rounded-lg border border-dark-700 bg-dark-800 px-4 py-2.5 text-sm font-medium text-dark-200 transition-all hover:border-primary-500/50 hover:bg-dark-700 hover:text-primary-500"
+              >
+                LOAD MORE ({activities.length - INITIAL_DISPLAY_COUNT} more)
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
