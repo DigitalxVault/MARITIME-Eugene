@@ -1,11 +1,17 @@
 import Redis from 'ioredis';
 
 class CacheService {
-  private redis: Redis;
+  private redis: Redis | null = null;
   private isConnected: boolean = false;
 
   constructor() {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisUrl = process.env.REDIS_URL;
+
+    // Skip Redis if REDIS_URL is not set or empty
+    if (!redisUrl || redisUrl.trim() === '') {
+      console.log('⚠️  Redis not configured - caching disabled');
+      return;
+    }
 
     this.redis = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
@@ -43,7 +49,7 @@ class CacheService {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return null;
       }
 
@@ -64,7 +70,7 @@ class CacheService {
    */
   async set(key: string, value: any, ttl?: number): Promise<boolean> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return false;
       }
 
@@ -88,7 +94,7 @@ class CacheService {
    */
   async del(key: string): Promise<boolean> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return false;
       }
 
@@ -105,7 +111,7 @@ class CacheService {
    */
   async delPattern(pattern: string): Promise<number> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return 0;
       }
 
@@ -127,7 +133,7 @@ class CacheService {
    */
   async exists(key: string): Promise<boolean> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return false;
       }
 
@@ -144,7 +150,7 @@ class CacheService {
    */
   async expire(key: string, ttl: number): Promise<boolean> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return false;
       }
 
@@ -161,7 +167,7 @@ class CacheService {
    */
   async incr(key: string): Promise<number> {
     try {
-      if (!this.isConnected) {
+      if (!this.redis || !this.isConnected) {
         return 0;
       }
 
@@ -176,7 +182,9 @@ class CacheService {
    * Close connection
    */
   async disconnect(): Promise<void> {
-    await this.redis.quit();
+    if (this.redis) {
+      await this.redis.quit();
+    }
   }
 }
 
