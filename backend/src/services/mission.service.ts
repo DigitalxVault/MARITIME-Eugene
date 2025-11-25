@@ -142,23 +142,15 @@ export class MissionService {
   }
 
   /**
-   * Delete a mission (soft or hard delete)
+   * Delete a mission (soft delete only)
    * @param id - Mission ID
-   * @param hard - If true, permanently delete from database. If false, soft delete (default)
    */
-  async deleteMission(id: string, hard: boolean = false): Promise<Mission | null> {
-    if (hard) {
-      // Hard delete - permanently remove from database
-      return await prisma.mission.delete({
-        where: { id },
-      });
-    } else {
-      // Soft delete - mark as deleted
-      return await prisma.mission.update({
-        where: { id, deletedAt: null },
-        data: { deletedAt: new Date() },
-      });
-    }
+  async deleteMission(id: string): Promise<Mission | null> {
+    // Soft delete - mark as deleted
+    return await prisma.mission.update({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
   }
 
   /**
