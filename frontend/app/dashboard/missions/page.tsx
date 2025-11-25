@@ -231,52 +231,54 @@ function MissionCard({
 
   return (
     <>
-      <Link
-        href={`/dashboard/missions/${mission.id}/edit`}
-        className="block rounded-lg border border-dark-800 bg-dark-900/50 p-6 transition-all hover:border-primary-500/50 hover:shadow-sci-fi relative"
-      >
-        {/* Delete button in edit mode */}
+      <div className="flex items-start gap-3">
+        {/* Delete button in edit mode - appears on the left */}
         {isEditMode && (
           <button
             onClick={handleDeleteClick}
-            className="absolute top-4 left-4 z-10 rounded-full bg-error/20 p-2 text-error transition-colors hover:bg-error hover:text-white"
+            className="flex-shrink-0 rounded-full bg-error/20 p-2 text-error transition-colors hover:bg-error hover:text-white mt-6"
             title="Delete mission"
           >
             <StopSignIcon className="h-5 w-5" />
           </button>
         )}
 
-        <div className="mb-3 flex items-start justify-between">
-          <div className="flex-1">
-            <h3 className="mb-1 text-lg font-semibold text-dark-50">{mission.title}</h3>
-            <p className="text-sm text-dark-400 line-clamp-2">{mission.description}</p>
-          </div>
-          <div className="ml-4 flex gap-2">
-            <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(mission.status)}`}>
-              {mission.status}
-            </span>
-            <span className={`rounded-full px-3 py-1 text-xs font-medium ${getDifficultyColor(mission.difficulty)}`}>
-              {mission.difficulty}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-6 text-sm text-dark-400">
-          <div className="flex items-center gap-2">
-            <ClockIcon className="h-4 w-4" />
-            <span>{mission.duration} min</span>
-          </div>
-          {mission._count && (
-            <div className="flex items-center gap-2">
-              <UsersIcon className="h-4 w-4" />
-              <span>{mission._count.results} attempts</span>
+        <Link
+          href={`/dashboard/missions/${mission.id}/edit`}
+          className="flex-1 block rounded-lg border border-dark-800 bg-dark-900/50 p-6 transition-all hover:border-primary-500/50 hover:shadow-sci-fi"
+        >
+          <div className="mb-3 flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="mb-1 text-lg font-semibold text-dark-50">{mission.title}</h3>
+              <p className="text-sm text-dark-400 line-clamp-2">{mission.description}</p>
             </div>
-          )}
-          <div className="ml-auto text-xs text-dark-500">
-            Created {formatDate(mission.createdAt, 'relative')}
+            <div className="ml-4 flex gap-2">
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(mission.status)}`}>
+                {mission.status}
+              </span>
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ${getDifficultyColor(mission.difficulty)}`}>
+                {mission.difficulty}
+              </span>
+            </div>
           </div>
-        </div>
-      </Link>
+
+          <div className="flex items-center gap-6 text-sm text-dark-400">
+            <div className="flex items-center gap-2">
+              <ClockIcon className="h-4 w-4" />
+              <span>{mission.duration} min</span>
+            </div>
+            {mission._count && (
+              <div className="flex items-center gap-2">
+                <UsersIcon className="h-4 w-4" />
+                <span>{mission._count.results} attempts</span>
+              </div>
+            )}
+            <div className="ml-auto text-xs text-dark-500">
+              Created {formatDate(mission.createdAt, 'relative')}
+            </div>
+          </div>
+        </Link>
+      </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
