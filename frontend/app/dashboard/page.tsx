@@ -79,7 +79,7 @@ export default function DashboardPage() {
         <p className="text-dark-400">
           {user?.role === UserRole.ADMIN && 'System Administration Dashboard'}
           {user?.role === UserRole.TRAINER && 'Training Management Dashboard'}
-          {user?.role === UserRole.PLAYER && 'Your Training Progress'}
+          {user?.role === UserRole.LEARNER && 'Your Training Progress'}
         </p>
       </div>
 
@@ -203,7 +203,7 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-dark-800 bg-dark-900/50 p-6">
             <h2 className="mb-4 text-lg font-semibold text-dark-50">Quick Actions</h2>
             <div className="space-y-3">
-              {user?.role !== UserRole.PLAYER && (
+              {user?.role !== UserRole.LEARNER && (
                 <QuickActionButton href="/dashboard/missions/new" label="Create New Mission" />
               )}
               <QuickActionButton href="/dashboard/missions" label="Browse Missions" />

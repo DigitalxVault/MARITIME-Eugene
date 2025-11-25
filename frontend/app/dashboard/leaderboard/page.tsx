@@ -58,13 +58,13 @@ export default function LeaderboardPage() {
     staleTime: 20000, // Consider data stale after 20 seconds
   });
 
-  // Fetch current user rank (only for PLAYER role)
+  // Fetch current user rank (only for LEARNER role)
   const { data: myRank } = useQuery<MyRankResponse>({
     queryKey: ['leaderboard', 'me', period, metric],
     queryFn: () => api.get<MyRankResponse>(`/leaderboard/me?period=${period}&metric=${metric}`),
     refetchInterval: 30000,
     staleTime: 20000,
-    enabled: user?.role === UserRole.PLAYER,
+    enabled: user?.role === UserRole.LEARNER,
   });
 
   return (

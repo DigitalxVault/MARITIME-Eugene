@@ -23,13 +23,13 @@ const navigationItems = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: HomeIcon,
-    roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
+    roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.LEARNER],
   },
   {
     label: 'Missions',
     href: '/dashboard/missions',
     icon: MissionIcon,
-    roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
+    roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.LEARNER],
   },
   {
     label: 'Players',
@@ -41,7 +41,7 @@ const navigationItems = [
     label: 'Leaderboard',
     href: '/dashboard/leaderboard',
     icon: TrophyIcon,
-    roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.PLAYER],
+    roles: [UserRole.ADMIN, UserRole.TRAINER, UserRole.LEARNER],
   },
   {
     label: 'Analytics',

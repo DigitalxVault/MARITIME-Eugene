@@ -7,7 +7,7 @@
 // ============================================================================
 
 export enum UserRole {
-  PLAYER = 'PLAYER',
+  LEARNER = 'LEARNER',
   TRAINER = 'TRAINER',
   ADMIN = 'ADMIN'
 }

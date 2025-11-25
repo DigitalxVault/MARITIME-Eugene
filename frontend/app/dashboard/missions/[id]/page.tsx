@@ -27,7 +27,7 @@ export default function MissionDetailPage() {
   });
 
   const canEdit = user?.role === UserRole.ADMIN || user?.role === UserRole.TRAINER;
-  const canStart = user?.role === UserRole.PLAYER && mission?.status === 'ACTIVE';
+  const canStart = user?.role === UserRole.LEARNER && mission?.status === 'ACTIVE';
 
   if (isLoading) {
     return (

@@ -35,7 +35,7 @@ export function PlayerCard({ player }: PlayerCardProps) {
         return 'bg-error/10 text-error';
       case UserRole.TRAINER:
         return 'bg-primary-500/10 text-primary-500';
-      case UserRole.PLAYER:
+      case UserRole.LEARNER:
         return 'bg-info/10 text-info';
       default:
         return 'bg-dark-400/10 text-dark-400';
