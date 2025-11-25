@@ -28,17 +28,12 @@ export class PlayerController {
       });
 
       console.log('[PlayerController] Result data length:', result.data.length);
-      console.log('[PlayerController] Result pagination:', result.pagination);
+      console.log('[PlayerController] Result meta:', result.meta);
 
       const response = {
         success: true,
         data: result.data,
-        meta: {
-          page: result.pagination.page,
-          limit: result.pagination.limit,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
-        },
+        meta: result.meta,
       };
 
       console.log('[PlayerController] Sending response with keys:', Object.keys(response));

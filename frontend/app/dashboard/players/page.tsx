@@ -172,7 +172,7 @@ export default function PlayersPage() {
 function PlayerCard({ player, isEditMode }: { player: Player; isEditMode: boolean }) {
   const queryClient = useQueryClient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const username = player.user?.username || 'Unknown';
+  const username = player.username || 'Unknown';
   const initials = getInitials(username);
 
   const deleteMutation = useMutation({

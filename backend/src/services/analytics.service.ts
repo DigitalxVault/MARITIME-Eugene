@@ -145,11 +145,11 @@ export class AnalyticsService {
       distributions: {
         missionsByDifficulty: missionsByDifficulty.map((item) => ({
           difficulty: item.difficulty,
-          count: item._count || 0,
+          count: item._count.id || 0,
         })),
         missionsByType: missionsByType.map((item) => ({
           type: item.type,
-          count: item._count || 0,
+          count: item._count.id || 0,
         })),
       },
     };

@@ -22,7 +22,7 @@ interface ActivityFeedProps {
   limit?: number; // number of activities to fetch
 }
 
-export default function ActivityFeed({ pollInterval = 10000, limit = 20 }: ActivityFeedProps) {
+export default function ActivityFeed({ pollInterval = 10000, limit = 10 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -151,7 +151,7 @@ export default function MissionsPage() {
         <>
           <div className="space-y-4">
             {data.data.map((mission) => (
-              <MissionCard key={mission.id} mission={mission} isEditMode={isEditMode} />
+              <MissionCard key={mission.id} mission={mission} isEditMode={isEditMode} setIsEditMode={setIsEditMode} />
             ))}
           </div>
 
@@ -184,15 +184,16 @@ export default function MissionsPage() {
 }
 
 // Mission Card Component
-function MissionCard({ mission, isEditMode }: { mission: Mission; isEditMode: boolean }) {
+function MissionCard({ mission, isEditMode, setIsEditMode }: { mission: Mission; isEditMode: boolean; setIsEditMode: (value: boolean) => void }) {
   const queryClient = useQueryClient();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/missions/${mission.id}?hard=true`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['missions'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['missions'] });
       setShowDeleteConfirm(false);
+      setIsEditMode(false);
     },
   });
 

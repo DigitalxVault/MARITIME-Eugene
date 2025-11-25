@@ -6,13 +6,13 @@ export const playerQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(10),
   search: z.string().optional(),
   rank: z.string().optional(),
-  sortBy: z.enum(['username', 'rank', 'winRate', 'missionsCompleted', 'createdAt']).optional().default('createdAt'),
+  sortBy: z.enum(['username', 'rank', 'winRate', 'missionsCompleted', 'createdAt', 'level', 'experiencePoints', 'totalMissionsCompleted', 'averageScore']).optional().default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 // Schema for player ID parameter
 export const playerIdSchema = z.object({
-  id: z.string().uuid('Invalid player ID format'),
+  id: z.string().cuid('Invalid player ID format'),
 });
 
 // Schema for updating player profile
@@ -27,7 +27,7 @@ export const updatePlayerProfileSchema = z.object({
 export const playerProgressQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
-  missionId: z.string().uuid().optional(),
+  missionId: z.string().cuid().optional(),
   completed: z.coerce.boolean().optional(),
   sortBy: z.enum(['completedAt', 'score', 'timeSpent']).optional().default('completedAt'),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
@@ -35,7 +35,7 @@ export const playerProgressQuerySchema = z.object({
 
 // Schema for recording mission result
 export const recordMissionResultSchema = z.object({
-  missionId: z.string().uuid('Invalid mission ID format'),
+  missionId: z.string().cuid('Invalid mission ID format'),
   score: z.number().min(0).max(1000),
   timeSpent: z.number().int().min(0), // in seconds
   completed: z.boolean(),

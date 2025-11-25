@@ -98,6 +98,7 @@ export interface MissionScenario {
 export interface Player {
   id: string;
   userId: string;
+  username: string;
   user?: User;
   level: number;
   experiencePoints: number;

@@ -99,7 +99,7 @@ export default function EditPlayerPage() {
           Back to Players
         </button>
         <h1 className="font-display text-2xl font-bold text-dark-50">
-          Edit Player: {player.user?.username || 'Unknown'}
+          Edit Player: {player.username || 'Unknown'}
         </h1>
         <p className="mt-1 text-sm text-dark-400">Update player information</p>
       </div>
@@ -134,7 +134,7 @@ export default function EditPlayerPage() {
               <label className="mb-1.5 block text-sm font-medium text-dark-300">Username</label>
               <input
                 type="text"
-                value={player.user?.username || 'Unknown'}
+                value={player.username || 'Unknown'}
                 disabled
                 className="w-full rounded-lg border border-dark-700 bg-dark-800/50 px-3 py-2 text-dark-400 cursor-not-allowed"
               />

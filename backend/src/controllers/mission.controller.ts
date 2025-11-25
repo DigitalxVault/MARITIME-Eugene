@@ -141,8 +141,8 @@ export class MissionController {
   }
 
   /**
-   * Delete a mission (soft delete)
-   * @route DELETE /api/missions/:id
+   * Delete a mission (soft or hard delete)
+   * @route DELETE /api/missions/:id?hard=true
    * @access ADMIN
    */
   async deleteMission(req: AuthRequest, res: Response, next: NextFunction) {
@@ -150,12 +150,15 @@ export class MissionController {
       // Validate mission ID
       const { id } = missionIdSchema.parse(req.params);
 
+      // Check if hard delete is requested
+      const hard = req.query.hard === 'true';
+
       // Delete mission
-      await missionService.deleteMission(id);
+      await missionService.deleteMission(id, hard);
 
       res.status(200).json({
         success: true,
-        message: 'Mission deleted successfully',
+        message: hard ? 'Mission permanently deleted' : 'Mission deleted successfully',
       });
     } catch (error) {
       next(error);

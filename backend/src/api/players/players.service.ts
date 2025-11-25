@@ -143,11 +143,13 @@ export class PlayerService {
 
     return {
       data: playersWithStats,
-      pagination: {
+      meta: {
         page,
         limit,
-        total,
+        totalCount: total,
         totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
       },
     };
   }
