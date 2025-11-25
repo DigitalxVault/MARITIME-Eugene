@@ -239,7 +239,7 @@ function MissionCard({
         {isEditMode && (
           <button
             onClick={handleDeleteClick}
-            className="absolute top-4 right-4 z-10 rounded-full bg-error/20 p-2 text-error transition-colors hover:bg-error hover:text-white"
+            className="absolute top-4 left-4 z-10 rounded-full bg-error/20 p-2 text-error transition-colors hover:bg-error hover:text-white"
             title="Delete mission"
           >
             <StopSignIcon className="h-5 w-5" />
