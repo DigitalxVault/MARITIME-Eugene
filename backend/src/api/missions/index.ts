@@ -51,12 +51,12 @@ router.get(
 /**
  * @route   POST /api/missions
  * @desc    Create a new mission
- * @access  ADMIN, TRAINER
+ * @access  ADMIN
  */
 router.post(
   '/',
   authenticate,
-  isAdminOrTrainer,
+  isAdmin,
   validateRequest({ body: createMissionSchema }),
   missionController.createMission
 );

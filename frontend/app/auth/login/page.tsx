@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import apiClient from '@/lib/api';
 
 // Form validation schema
 const loginSchema = z.object({
@@ -45,11 +45,9 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError('');
-      const response = await axios.post('http://localhost:4000/api/auth/login', {
+      const response = await apiClient.post('/auth/login', {
         email: data.email,
         password: data.password,
-      }, {
-        withCredentials: true,
       });
 
       if (response.data.success) {

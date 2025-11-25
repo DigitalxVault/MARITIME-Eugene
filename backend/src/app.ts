@@ -35,7 +35,7 @@ export function createApp(): Application {
   // Rate limiting - Global API protection
   const limiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '200'), // 200 requests per window (dashboard polling needs ~150)
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300'), // 300 requests per window (dashboard polling + buffer)
     standardHeaders: true,
     legacyHeaders: false,
     message: 'Too many requests from this IP, please try again later.',

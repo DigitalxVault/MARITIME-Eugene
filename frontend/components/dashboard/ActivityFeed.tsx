@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import apiClient from '@/lib/api';
 
 interface Activity {
   id: string;
@@ -40,12 +40,8 @@ export default function ActivityFeed({ pollInterval = 10000, limit = 10 }: Activ
         params.since = lastFetchRef.current;
       }
 
-      const response = await axios.get('http://localhost:4000/api/activity/recent', {
+      const response = await apiClient.get('/activity/recent', {
         params,
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
       });
 
       if (response.data.success) {
